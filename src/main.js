@@ -19,7 +19,7 @@ function getHeaderLines() {
 // Initialize OpenAI client with OpenRouter as the base URL
 const openai = new OpenAI({
   baseURL: "https://openrouter.ai/api/v1",
-  apiKey: process.env.OPEN_AI_KEY,
+  apiKey: process.env.OPENROUTER_KEY,
   defaultHeaders: {
     "HTTP-Referer": "https://muesli.app",
     "X-Title": "Muesli AI Notetaker"
