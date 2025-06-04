@@ -11,7 +11,7 @@ require('dotenv').config();
 // Function to get the OpenRouter headers
 function getHeaderLines() {
   return [
-    "HTTP-Referer: https://muesli.app", // Replace with your actual app's URL
+    "HTTP-Referer: https://recall.ai", // Replace with your actual app's URL
     "X-Title: Muesli AI Notetaker"
   ];
 }
@@ -21,7 +21,7 @@ const openai = new OpenAI({
   baseURL: "https://openrouter.ai/api/v1",
   apiKey: process.env.OPENROUTER_KEY,
   defaultHeaders: {
-    "HTTP-Referer": "https://muesli.app",
+    "HTTP-Referer": "https://recall.ai",
     "X-Title": "Muesli AI Notetaker"
   }
 });
