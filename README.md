@@ -1,2 +1,2 @@
 # muesli-public
-Public muesli sdk repo.
+This is a demo application for the Desktop SDK that records Zoom and Google Meet on macOS.
