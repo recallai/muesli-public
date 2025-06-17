@@ -15,7 +15,7 @@ Modify `.env` to include your Recall.ai API key:
 RECALLAI_API_KEY=<your key>
 ```
 
-Additionally, this project by default tries to do live transcription using AssemblyAI; you'll need to configure your AssemblyAI credential on the [Recall.ai dashboard!](https://www.recall.ai/login).
+Additionally, this project by default tries to do live transcription using AssemblyAI; you'll need to configure your AssemblyAI credential on the [Recall.ai dashboard!](https://www.recall.ai/login)
 
 If you want to enable the AI summary after a recording is finished, you can specify an OpenRouter API key.
 
