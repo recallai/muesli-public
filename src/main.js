@@ -49,6 +49,7 @@ const createWindow = () => {
     width: 1024,
     height: 768,
     webPreferences: {
+      webSecurity: true, // set to false to allow files to be loaded in dev environment
       preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
       contextIsolation: true,
       nodeIntegration: false,
