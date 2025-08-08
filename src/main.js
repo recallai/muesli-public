@@ -339,7 +339,7 @@ async function createDesktopSdkUpload() {
       recording_config: {
         transcript: {
           provider: {
-            assembly_ai_streaming: {}
+            deepgram_streaming: {}
           }
         },
         realtime_endpoints: [
@@ -769,7 +769,7 @@ ipcMain.handle('generateMeetingSummary', async (event, meetingId) => {
 
     // Get recording ID
     const recordingId = meeting.recordingId;
-    
+
     // Check for different possible video file patterns
     const possibleFilePaths = recordingId ? [
       path.join(RECORDING_PATH, `${recordingId}.mp4`),
@@ -777,11 +777,11 @@ ipcMain.handle('generateMeetingSummary', async (event, meetingId) => {
       path.join(RECORDING_PATH, `macos-desktop${recordingId}.mp4`),
       path.join(RECORDING_PATH, `desktop-${recordingId}.mp4`)
     ] : [];
-    
+
     // Find the first video file that exists
     let videoExists = false;
     let videoFilePath = null;
-    
+
     try {
       for (const filePath of possibleFilePaths) {
         if (fs.existsSync(filePath)) {
@@ -797,7 +797,7 @@ ipcMain.handle('generateMeetingSummary', async (event, meetingId) => {
 
     // Create content with the AI-generated summary
     meeting.content = `# ${meetingTitle}\n\n${summary}`;
-    
+
     // If video exists, store the path separately but don't add it to the content
     if (videoExists) {
       meeting.videoPath = videoFilePath; // Store the path for future reference
@@ -1669,11 +1669,11 @@ async function updateNoteWithRecordingInfo(recordingId) {
         path.join(RECORDING_PATH, `macos-desktop${recordingId}.mp4`),
         path.join(RECORDING_PATH, `desktop-${recordingId}.mp4`)
       ];
-      
+
       // Find the first video file that exists
       let videoExists = false;
       let videoFilePath = null;
-      
+
       try {
         for (const filePath of possibleFilePaths) {
           if (fs.existsSync(filePath)) {
@@ -1691,7 +1691,7 @@ async function updateNoteWithRecordingInfo(recordingId) {
 
       // Set the content to just the summary
       meeting.content = `${summary}`;
-      
+
       // If video exists, store the path separately but don't add it to the content
       if (videoExists) {
         meeting.videoPath = videoFilePath; // Store the path for future reference
