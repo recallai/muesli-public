@@ -15,14 +15,14 @@ module.exports = {
       params,
       timestamp: new Date()
     };
-    
+
     // Emit the log event
     logger.emit('log', logEntry);
-    
+
     // Return a reference to the logger for chaining
     return this;
   },
-  
+
   // Log an SDK event
   logEvent: function(eventType, data = {}) {
     const logEntry = {
@@ -31,14 +31,14 @@ module.exports = {
       data,
       timestamp: new Date()
     };
-    
+
     // Emit the log event
     logger.emit('log', logEntry);
-    
+
     // Return a reference to the logger for chaining
     return this;
   },
-  
+
   // Log an error
   logError: function(errorType, message) {
     const logEntry = {
@@ -47,14 +47,14 @@ module.exports = {
       message,
       timestamp: new Date()
     };
-    
+
     // Emit the log event
     logger.emit('log', logEntry);
-    
+
     // Return a reference to the logger for chaining
     return this;
   },
-  
+
   // Log a generic message
   log: function(message, level = 'info') {
     const logEntry = {
@@ -62,20 +62,20 @@ module.exports = {
       message,
       timestamp: new Date()
     };
-    
+
     // Emit the log event
     logger.emit('log', logEntry);
-    
+
     // Return a reference to the logger for chaining
     return this;
   },
-  
+
   // Set up a listener for logs
   onLog: function(callback) {
     logger.on('log', callback);
     return this;
   },
-  
+
   // Remove a log listener
   removeLogListener: function(callback) {
     logger.off('log', callback);

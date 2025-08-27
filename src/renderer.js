@@ -29,11 +29,11 @@ window.currentRecordingId = null;
 // Function to check if there's an active recording for the current note
 async function checkActiveRecordingState() {
   if (!currentEditingMeetingId) return;
-  
+
   try {
     console.log('Checking active recording state for note:', currentEditingMeetingId);
     const result = await window.electronAPI.getActiveRecordingId(currentEditingMeetingId);
-    
+
     if (result.success && result.data) {
       console.log('Found active recording for current note:', result.data);
       updateRecordingButtonUI(true, result.data.recordingId);
@@ -50,17 +50,17 @@ async function checkActiveRecordingState() {
 function updateRecordingButtonUI(isActive, recordingId) {
   const recordButton = document.getElementById('recordButton');
   if (!recordButton) return;
-  
+
   // Get the elements inside the button
   const recordIcon = recordButton.querySelector('.record-icon');
   const stopIcon = recordButton.querySelector('.stop-icon');
-  
+
   if (isActive) {
     // Recording is active
     console.log('Updating UI for active recording:', recordingId);
     window.isRecording = true;
     window.currentRecordingId = recordingId;
-    
+
     // Update button UI
     recordButton.classList.add('recording');
     recordIcon.style.display = 'none';
@@ -70,7 +70,7 @@ function updateRecordingButtonUI(isActive, recordingId) {
     console.log('Updating UI for inactive recording');
     window.isRecording = false;
     window.currentRecordingId = null;
-    
+
     // Update button UI
     recordButton.classList.remove('recording');
     recordIcon.style.display = 'block';
@@ -84,7 +84,7 @@ function formatDateHeader(dateString) {
   const now = new Date();
   const yesterday = new Date(now);
   yesterday.setDate(yesterday.getDate() - 1);
-  
+
   // Check if date is today, yesterday, or earlier
   if (date.toDateString() === now.toDateString()) {
     return 'Today';
@@ -103,7 +103,7 @@ function formatDateHeader(dateString) {
 async function saveMeetingsData() {
   // Save to localStorage as a backup
   localStorage.setItem('meetingsData', JSON.stringify(meetingsData));
-  
+
   // Save to the actual file using IPC
   try {
     console.log('Saving meetings data to file...');
@@ -125,41 +125,41 @@ let currentEditingMeetingId = null;
 async function saveCurrentNote() {
   const editorElement = document.getElementById('simple-editor');
   const noteTitleElement = document.getElementById('noteTitle');
-  
+
   // Early exit if elements aren't available
   if (!editorElement || !noteTitleElement) {
     console.warn('Cannot save note: Editor elements not found');
     return;
   }
-  
+
   // Early exit if no current meeting ID
   if (!currentEditingMeetingId) {
     console.warn('Cannot save note: No active meeting ID');
     return;
   }
-  
+
   // Get title text, defaulting to "New Note" if empty
   const noteTitle = noteTitleElement.textContent.trim() || 'New Note';
-  
+
   // Set title back to element in case it was empty
   if (!noteTitleElement.textContent.trim()) {
     noteTitleElement.textContent = noteTitle;
   }
-  
+
   // Find which meeting is currently active by ID
   const activeMeeting = [...upcomingMeetings, ...pastMeetings].find(m => m.id === currentEditingMeetingId);
-  
+
   if (activeMeeting) {
     console.log(`Saving note with ID: ${currentEditingMeetingId}, Title: ${noteTitle}`);
-    
+
     // Get the current content from the editor
     const content = editorElement.value;
     console.log(`Note content length: ${content.length} characters`);
-    
+
     // Update the title and content in the meeting object
     activeMeeting.title = noteTitle;
     activeMeeting.content = content;
-    
+
     // Update the data arrays directly to make sure they stay in sync
     const pastIndex = meetingsData.pastMeetings.findIndex(m => m.id === currentEditingMeetingId);
     if (pastIndex !== -1) {
@@ -167,20 +167,20 @@ async function saveCurrentNote() {
       meetingsData.pastMeetings[pastIndex].content = content;
       console.log('Updated meeting in pastMeetings array');
     }
-    
+
     const upcomingIndex = meetingsData.upcomingMeetings.findIndex(m => m.id === currentEditingMeetingId);
     if (upcomingIndex !== -1) {
       meetingsData.upcomingMeetings[upcomingIndex].title = noteTitle;
       meetingsData.upcomingMeetings[upcomingIndex].content = content;
       console.log('Updated meeting in upcomingMeetings array');
     }
-    
+
     // Also update the subtitle if it's a date-based one
     const dateObj = new Date(activeMeeting.date);
     if (dateObj) {
       document.getElementById('noteDate').textContent = formatDate(dateObj);
     }
-    
+
     try {
       // Save the data to file
       await saveMeetingsData();
@@ -190,7 +190,7 @@ async function saveCurrentNote() {
     }
   } else {
     console.error(`Cannot save note: Meeting not found with ID: ${currentEditingMeetingId}`);
-    
+
     // Log all available meetings for debugging
     console.log('Available meeting IDs:', [...upcomingMeetings, ...pastMeetings].map(m => m.id).join(', '));
   }
@@ -219,9 +219,9 @@ function createMeetingCard(meeting) {
   const card = document.createElement('div');
   card.className = 'meeting-card';
   card.dataset.id = meeting.id;
-  
+
   let iconHtml = '';
-  
+
   if (meeting.type === 'profile') {
     iconHtml = `
       <div class="profile-pic">
@@ -245,11 +245,11 @@ function createMeetingCard(meeting) {
       </div>
     `;
   }
-  
+
   let subtitleHtml = meeting.hasDemo
     ? `<div class="meeting-time"><a class="meeting-demo-link">${meeting.subtitle}</a></div>`
     : `<div class="meeting-time">${meeting.subtitle}</div>`;
-  
+
   card.innerHTML = `
     ${iconHtml}
     <div class="meeting-content">
@@ -264,7 +264,7 @@ function createMeetingCard(meeting) {
       </button>
     </div>
   `;
-  
+
   return card;
 }
 
@@ -275,14 +275,14 @@ function showHomeView() {
   document.getElementById('backButton').style.display = 'none';
   document.getElementById('newNoteBtn').style.display = 'block';
   document.getElementById('toggleSidebar').style.display = 'none';
-  
+
   // Show Join Meeting button only if there's a detected meeting
   const joinMeetingBtn = document.getElementById('joinMeetingBtn');
   if (joinMeetingBtn) {
     // Reset the button to its original state
     joinMeetingBtn.disabled = false;
     joinMeetingBtn.innerHTML = 'Join Meeting';
-    
+
     // Only show if there's a detected meeting
     if (window.meetingDetected) {
       joinMeetingBtn.style.display = 'block';
@@ -295,56 +295,56 @@ function showHomeView() {
 // Function to show editor view
 function showEditorView(meetingId) {
   console.log(`Showing editor view for meeting ID: ${meetingId}`);
-  
+
   // Make the views visible/hidden
   document.getElementById('homeView').style.display = 'none';
   document.getElementById('editorView').style.display = 'block';
   document.getElementById('backButton').style.display = 'block';
   document.getElementById('newNoteBtn').style.display = 'none';
   document.getElementById('toggleSidebar').style.display = 'none'; // Hide the sidebar toggle
-  
+
   // Always hide the join meeting button when in editor view
   const joinMeetingBtn = document.getElementById('joinMeetingBtn');
   if (joinMeetingBtn) {
     joinMeetingBtn.style.display = 'none';
   }
-  
+
   // Find the meeting in either upcoming or past meetings
   let meeting = [...upcomingMeetings, ...pastMeetings].find(m => m.id === meetingId);
-  
+
   if (!meeting) {
     console.error(`Meeting not found: ${meetingId}`);
     return;
   }
-  
+
   // Set the current editing meeting ID
   currentEditingMeetingId = meetingId;
   console.log(`Now editing meeting: ${meetingId} - ${meeting.title}`);
-  
+
   // Remove any existing video player
   const existingPlayer = document.getElementById('video-player-container');
   if (existingPlayer) {
     existingPlayer.remove();
   }
-  
+
   // Wait a bit for the content to load, then check for video
   setTimeout(addVideoPlayerForNote, 500);
-  
+
   // Set the meeting title
   document.getElementById('noteTitle').textContent = meeting.title;
-  
+
   // Set the date display
   const dateObj = new Date(meeting.date);
   document.getElementById('noteDate').textContent = formatDate(dateObj);
-  
+
   // Get the editor element
   const editorElement = document.getElementById('simple-editor');
-  
+
   // Important: Reset the editor content completely
   if (editorElement) {
     editorElement.value = '';
   }
-  
+
   // Add a small delay to ensure the DOM has updated before setting content
   setTimeout(() => {
     if (meeting.content) {
@@ -355,22 +355,22 @@ function showEditorView(meetingId) {
       const now = new Date();
       const template = `# Meeting Title\n• ${meeting.title}\n\n# Meeting Date and Time\n• ${now.toLocaleString()}\n\n# Participants\n• \n\n# Description\n• \n\nChat with meeting transcript: `;
       editorElement.value = template;
-      
+
       // Save this template to the meeting
       meeting.content = template;
       saveMeetingsData();
       console.log(`Created new template for meeting: ${meetingId}`);
     }
-    
+
     // Set up auto-save handler for this specific note
     setupAutoSaveHandler();
-    
+
     // Add event listener to the title
     setupTitleEditing();
-    
+
     // Check if this note has an active recording and update the record button
     checkActiveRecordingState();
-    
+
     // Update debug panel with any available data if it's open
     const debugPanel = document.getElementById('debugPanel');
     if (debugPanel && !debugPanel.classList.contains('hidden')) {
@@ -388,7 +388,7 @@ function showEditorView(meetingId) {
           `;
         }
       }
-      
+
       // Update participants if available
       if (meeting.participants && meeting.participants.length > 0) {
         updateDebugParticipants(meeting.participants);
@@ -403,7 +403,7 @@ function showEditorView(meetingId) {
           `;
         }
       }
-      
+
       // Reset video preview when changing notes
       const videoContent = document.getElementById('videoContent');
       if (videoContent) {
@@ -423,11 +423,11 @@ function showEditorView(meetingId) {
 // Setup the title editing and save function
 function setupTitleEditing() {
   const titleElement = document.getElementById('noteTitle');
-  
+
   // Remove existing event listeners if any
   titleElement.removeEventListener('blur', titleBlurHandler);
   titleElement.removeEventListener('keydown', titleKeydownHandler);
-  
+
   // Add event listeners
   titleElement.addEventListener('blur', titleBlurHandler);
   titleElement.addEventListener('keydown', titleKeydownHandler);
@@ -452,25 +452,25 @@ let currentAutoSaveHandler = null;
 // Function to add a video player before the AI summary
 function addVideoPlayerForNote() {
   if (!currentEditingMeetingId) return;
-  
+
   // Find the active meeting to get the video path
   const meeting = [...upcomingMeetings, ...pastMeetings].find(m => m.id === currentEditingMeetingId);
   if (!meeting || !meeting.videoPath) return;
-  
+
   console.log('Found video path for meeting:', meeting.videoPath);
-  
+
   try {
     // Remove any existing video player first
     const existingPlayer = document.getElementById('video-player-container');
     if (existingPlayer) {
       existingPlayer.remove();
     }
-    
+
     // Create video element wrapper
     const videoWrapper = document.createElement('div');
     videoWrapper.id = 'video-player-container';
     videoWrapper.style.cssText = 'margin: 10px 0; width: 100%;';
-    
+
     // Create the video element
     videoWrapper.innerHTML = `
       <video id="recording-video" width="100%" height="auto" controls style="max-height: 300px; border-radius: 4px; background: #000;">
@@ -478,18 +478,18 @@ function addVideoPlayerForNote() {
         Your browser does not support the video tag.
       </video>
     `;
-    
+
     // Get the editor element
     const editorElement = document.getElementById('simple-editor');
     if (!editorElement) return;
-    
+
     // Get the editor's parent
     const editorParent = editorElement.parentElement;
     if (!editorParent) return;
-    
+
     // Insert the video player directly before the editor
     editorParent.insertBefore(videoWrapper, editorElement);
-    
+
     console.log('Added video player before AI summary');
   } catch (error) {
     console.error('Error adding video player:', error);
@@ -526,7 +526,7 @@ function setupAutoSaveHandler() {
   if (editorElement) {
     editorElement.addEventListener('input', autoSaveHandler);
     console.log(`Set up editor auto-save handler for meeting: ${currentEditingMeetingId || 'none'}`);
-    
+
     // Manually trigger a save once to ensure the content is saved
     setTimeout(() => {
       console.log('Triggering initial save after setup');
@@ -540,26 +540,26 @@ function setupAutoSaveHandler() {
 // Function to create a new meeting
 async function createNewMeeting() {
   console.log('Creating new note...');
-  
+
   // Save any existing note before creating a new one
   if (currentEditingMeetingId) {
     await saveCurrentNote();
     console.log('Saved current note before creating new one');
   }
-  
+
   // Reset the current editing ID to ensure we start fresh
   currentEditingMeetingId = null;
-  
+
   // Generate a unique ID
   const id = 'meeting-' + Date.now();
   console.log('Generated new meeting ID:', id);
-  
+
   // Current date and time
   const now = new Date();
-  
+
   // Generate the template for the content
   const template = `# Meeting Title\n• New Note\n\n# Meeting Date and Time\n• ${now.toLocaleString()}\n\n# Participants\n• \n\n# Description\n• \n\nChat with meeting transcript: `;
-  
+
   // Create a new meeting object - ensure it's of type document
   const newMeeting = {
     id: id,
@@ -571,21 +571,21 @@ async function createNewMeeting() {
     participants: [],
     content: template // Set the content directly
   };
-  
+
   // Log what we're adding
   console.log(`Adding new meeting: id=${id}, title=${newMeeting.title}, content.length=${template.length}`);
-  
+
   // Add to pastMeetings - make sure to push to both arrays
   pastMeetings.unshift(newMeeting);
   meetingsData.pastMeetings.unshift(newMeeting);
-  
+
   // Update the grouped meetings
   const dateKey = formatDateHeader(newMeeting.date);
   if (!pastMeetingsByDate[dateKey]) {
     pastMeetingsByDate[dateKey] = [];
   }
   pastMeetingsByDate[dateKey].unshift(newMeeting);
-  
+
   // Save the data to file
   try {
     await saveMeetingsData();
@@ -593,7 +593,7 @@ async function createNewMeeting() {
   } catch (error) {
     console.error('Error saving new meeting:', error);
   }
-  
+
   // Set current editing ID to the new meeting ID BEFORE showing the editor
   currentEditingMeetingId = id;
   console.log('Set currentEditingMeetingId to:', id);
@@ -606,7 +606,7 @@ async function createNewMeeting() {
 
   // Now show the editor view with the new meeting
   showEditorView(id);
-  
+
   // Automatically start recording for the new note
   try {
     console.log('Auto-starting recording for new note');
@@ -618,13 +618,13 @@ async function createNewMeeting() {
           // Update recording button UI
           window.isRecording = true;
           window.currentRecordingId = result.recordingId;
-          
+
           // Update recording button UI
           const recordButton = document.getElementById('recordButton');
           if (recordButton) {
             const recordIcon = recordButton.querySelector('.record-icon');
             const stopIcon = recordButton.querySelector('.stop-icon');
-            
+
             recordButton.classList.add('recording');
             recordIcon.style.display = 'none';
             stopIcon.style.display = 'block';
@@ -639,7 +639,7 @@ async function createNewMeeting() {
   } catch (error) {
     console.error('Exception auto-starting recording:', error);
   }
-  
+
   return id;
 }
 
@@ -648,7 +648,7 @@ function renderMeetings() {
   // Clear previous content
   const mainContent = document.querySelector('.main-content .content-container');
   mainContent.innerHTML = '';
-  
+
   // Create all notes section (replaces both upcoming and date-grouped sections)
   const notesSection = document.createElement('section');
   notesSection.className = 'meetings-section';
@@ -657,18 +657,18 @@ function renderMeetings() {
     <div class="meetings-list" id="notes-list"></div>
   `;
   mainContent.appendChild(notesSection);
-  
+
   // Get the notes container
   const notesContainer = notesSection.querySelector('#notes-list');
-  
+
   // Add all meetings to the notes section (both upcoming and past)
   const allMeetings = [...upcomingMeetings, ...pastMeetings];
-  
+
   // Sort by date, newest first
   allMeetings.sort((a, b) => {
     return new Date(b.date) - new Date(a.date);
   });
-  
+
   // Filter out calendar entries and add only document type meetings to the container
   allMeetings
     .filter(meeting => meeting.type !== 'calendar') // Skip calendar entries
@@ -683,45 +683,45 @@ async function loadMeetingsDataFromFile() {
   try {
     const result = await window.electronAPI.loadMeetingsData();
     console.log("Load result success:", result.success);
-    
+
     if (result.success) {
       console.log(`Got data with ${result.data.pastMeetings?.length || 0} past meetings`);
       if (result.data.pastMeetings && result.data.pastMeetings.length > 0) {
         console.log("Most recent meeting:", result.data.pastMeetings[0].id, result.data.pastMeetings[0].title);
       }
-      
+
       // Initialize arrays if they don't exist in the loaded data
       if (!result.data.upcomingMeetings) {
         result.data.upcomingMeetings = [];
       }
-      
+
       if (!result.data.pastMeetings) {
         result.data.pastMeetings = [];
       }
-      
+
       // Update the meetings data objects
       Object.assign(meetingsData, result.data);
-      
+
       // Clear and reassign the references
       upcomingMeetings.length = 0;
       pastMeetings.length = 0;
-      
+
       console.log("Before updating arrays, pastMeetings count:", pastMeetings.length);
-      
+
       // Filter out calendar entries when loading data
       meetingsData.upcomingMeetings
         .filter(meeting => meeting.type !== 'calendar')
         .forEach(meeting => upcomingMeetings.push(meeting));
-      
+
       meetingsData.pastMeetings
         .filter(meeting => meeting.type !== 'calendar')
         .forEach(meeting => pastMeetings.push(meeting));
-      
+
       console.log("After updating arrays, pastMeetings count:", pastMeetings.length);
       if (pastMeetings.length > 0) {
         console.log("First past meeting:", pastMeetings[0].id, pastMeetings[0].title);
       }
-      
+
       // Regroup past meetings by date
       pastMeetingsByDate = {};
       meetingsData.pastMeetings.forEach(meeting => {
@@ -731,9 +731,9 @@ async function loadMeetingsDataFromFile() {
         }
         pastMeetingsByDate[dateKey].push(meeting);
       });
-      
+
       console.log('Meetings data loaded from file');
-      
+
       // Re-render the meetings
       renderMeetings();
     } else {
@@ -748,10 +748,10 @@ async function loadMeetingsDataFromFile() {
 function updateDebugTranscript(transcript) {
   const transcriptContent = document.getElementById('transcriptContent');
   if (!transcriptContent) return;
-  
+
   // Clear previous content
   transcriptContent.innerHTML = '';
-  
+
   if (!transcript || transcript.length === 0) {
     // Show placeholder if no transcript is available
     transcriptContent.innerHTML = `
@@ -761,37 +761,37 @@ function updateDebugTranscript(transcript) {
     `;
     return;
   }
-  
+
   // Create transcript entries
   const transcriptDiv = document.createElement('div');
   transcriptDiv.className = 'transcript-entries';
-  
+
   // Add each transcript entry
   transcript.forEach((entry, index) => {
     const entryDiv = document.createElement('div');
     entryDiv.className = 'transcript-entry';
-    
+
     // Format timestamp
     const timestamp = new Date(entry.timestamp);
     const formattedTime = timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    
+
     // Create HTML for this entry
     entryDiv.innerHTML = `
       <div class="transcript-speaker">${entry.speaker || 'Unknown'}</div>
       <div class="transcript-text">${entry.text}</div>
       <div class="transcript-timestamp">${formattedTime}</div>
     `;
-    
+
     // Add a highlight class for the newest entry
     if (index === transcript.length - 1) {
       entryDiv.classList.add('newest-entry');
     }
-    
+
     transcriptDiv.appendChild(entryDiv);
   });
-  
+
   transcriptContent.appendChild(transcriptDiv);
-  
+
   // Scroll to the bottom to show the latest entries
   transcriptContent.scrollTop = transcriptContent.scrollHeight;
 }
@@ -800,54 +800,54 @@ function updateDebugTranscript(transcript) {
 function updateDebugVideoPreview(frameData) {
   const videoContent = document.getElementById('videoContent');
   if (!videoContent) return;
-  
+
   // Get the image data from the frame
   const { buffer, participantId, participantName, frameType } = frameData;
-  
+
   // Check if we already have a container for this participant
   let participantVideoContainer = document.getElementById(`video-participant-${participantId}`);
-  
+
   // If no container exists, create one
   if (!participantVideoContainer) {
     // Clear the placeholder content if this is the first frame
     if (videoContent.querySelector('.placeholder-content')) {
       videoContent.innerHTML = '';
     }
-    
+
     // Create a container for this participant's video
     participantVideoContainer = document.createElement('div');
     participantVideoContainer.id = `video-participant-${participantId}`;
     participantVideoContainer.className = 'video-participant-container';
-    
+
     // Add the name label
     const nameLabel = document.createElement('div');
     nameLabel.className = 'video-participant-name';
     nameLabel.textContent = participantName;
     participantVideoContainer.appendChild(nameLabel);
-    
+
     // Create an image element for the video frame
     const videoImg = document.createElement('img');
     videoImg.className = 'video-frame';
     videoImg.id = `video-frame-${participantId}`;
     participantVideoContainer.appendChild(videoImg);
-    
+
     // Add the frame type label (webcam or screenshare)
     const typeLabel = document.createElement('div');
     typeLabel.className = 'video-frame-type';
     typeLabel.textContent = frameType === 'webcam' ? 'Camera' : 'Screen';
     participantVideoContainer.appendChild(typeLabel);
-    
+
     // Add to the video content area
     videoContent.appendChild(participantVideoContainer);
   }
-  
+
   // Update the image with the new frame
   const videoImg = document.getElementById(`video-frame-${participantId}`);
   if (videoImg) {
     // Set the image source to the base64 encoded PNG
     videoImg.src = `data:image/png;base64,${buffer}`;
   }
-  
+
   // Make sure debug panel toggle shows new content notification if panel is closed
   const debugPanel = document.getElementById('debugPanel');
   if (debugPanel && debugPanel.classList.contains('hidden')) {
@@ -862,10 +862,10 @@ function updateDebugVideoPreview(frameData) {
 function updateDebugParticipants(participants) {
   const participantsContent = document.getElementById('participantsContent');
   if (!participantsContent) return;
-  
+
   // Clear previous content
   participantsContent.innerHTML = '';
-  
+
   if (!participants || participants.length === 0) {
     // Show placeholder if no participants are available
     participantsContent.innerHTML = `
@@ -875,16 +875,16 @@ function updateDebugParticipants(participants) {
     `;
     return;
   }
-  
+
   // Create participants list
   const participantsList = document.createElement('div');
   participantsList.className = 'participants-list';
-  
+
   // Add each participant
   participants.forEach(participant => {
     const participantDiv = document.createElement('div');
     participantDiv.className = 'participant-entry';
-    
+
     participantDiv.innerHTML = `
       <div class="participant-avatar">
         <svg width="24" height="24" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -896,10 +896,10 @@ function updateDebugParticipants(participants) {
       <div class="participant-name">${participant.name || 'Unknown'}</div>
       <div class="participant-status">${participant.status || 'Active'}</div>
     `;
-    
+
     participantsList.appendChild(participantDiv);
   });
-  
+
   participantsContent.appendChild(participantsList);
 }
 
@@ -908,7 +908,7 @@ function initDebugPanel() {
   const debugPanelToggle = document.getElementById('debugPanelToggle');
   const debugPanel = document.getElementById('debugPanel');
   const closeDebugPanelBtn = document.getElementById('closeDebugPanelBtn');
-  
+
   // Set up toggle button for the debug panel
   if (debugPanelToggle && debugPanel) {
     debugPanelToggle.addEventListener('click', () => {
@@ -916,7 +916,7 @@ function initDebugPanel() {
       if (debugPanel.classList.contains('hidden')) {
         debugPanel.classList.remove('hidden');
         document.querySelector('.app-container').classList.add('debug-panel-open');
-        
+
         // Update the toggle button position and remove any notification indicators
         debugPanelToggle.style.right = '50%';
         debugPanelToggle.classList.remove('has-new-content');
@@ -925,7 +925,7 @@ function initDebugPanel() {
             <path d="M7.99 11H20v2H7.99v3L4 12l3.99-4v3z" fill="currentColor"/>
           </svg>
         `;
-        
+
         // If there's an active meeting, refresh the debug panels with latest data
         if (currentEditingMeetingId) {
           const meeting = [...upcomingMeetings, ...pastMeetings].find(m => m.id === currentEditingMeetingId);
@@ -944,7 +944,7 @@ function initDebugPanel() {
                 `;
               }
             }
-            
+
             // Update participants if available
             if (meeting.participants && meeting.participants.length > 0) {
               updateDebugParticipants(meeting.participants);
@@ -959,7 +959,7 @@ function initDebugPanel() {
                 `;
               }
             }
-            
+
             // Reset video preview when opening debug panel
             const videoContent = document.getElementById('videoContent');
             if (videoContent) {
@@ -977,7 +977,7 @@ function initDebugPanel() {
       } else {
         debugPanel.classList.add('hidden');
         document.querySelector('.app-container').classList.remove('debug-panel-open');
-        
+
         // Reset the toggle button position
         debugPanelToggle.style.right = '0';
         debugPanelToggle.innerHTML = `
@@ -988,14 +988,14 @@ function initDebugPanel() {
       }
     });
   }
-  
+
   // Set up close button for the debug panel
   if (closeDebugPanelBtn && debugPanel) {
     closeDebugPanelBtn.addEventListener('click', () => {
       debugPanel.classList.add('hidden');
       // Restore the editorView to full width
       document.querySelector('.app-container').classList.remove('debug-panel-open');
-      
+
       // Reset the toggle button position and icon
       const debugPanelToggle = document.getElementById('debugPanelToggle');
       if (debugPanelToggle) {
@@ -1008,7 +1008,7 @@ function initDebugPanel() {
       }
     });
   }
-  
+
   // Set up clear button for the logger section
   const clearLoggerBtn = document.getElementById('clearLoggerBtn');
   if (clearLoggerBtn) {
@@ -1022,7 +1022,7 @@ function initDebugPanel() {
 const sdkLogger = {
   logs: [],
   maxLogs: 100,
-  
+
   // Initialize the logger
   init() {
     // Listen for logs from the main process
@@ -1032,11 +1032,11 @@ const sdkLogger = {
         this.addLogEntry(logEntry);
       }
     });
-    
+
     // Log initialization
     this.log('SDK Logger initialized', 'info');
   },
-  
+
   // Log an API call
   logApiCall(method, params = {}) {
     const logEntry = {
@@ -1045,14 +1045,14 @@ const sdkLogger = {
       params,
       timestamp: new Date()
     };
-    
+
     // Send to main process
     this._sendToMainProcess(logEntry);
-    
+
     // Add to local logs
     this.addLogEntry(logEntry);
   },
-  
+
   // Log an event
   logEvent(eventType, data = {}) {
     const logEntry = {
@@ -1061,14 +1061,14 @@ const sdkLogger = {
       data,
       timestamp: new Date()
     };
-    
+
     // Send to main process
     this._sendToMainProcess(logEntry);
-    
+
     // Add to local logs
     this.addLogEntry(logEntry);
   },
-  
+
   // Log an error
   logError(errorType, message) {
     const logEntry = {
@@ -1077,14 +1077,14 @@ const sdkLogger = {
       message,
       timestamp: new Date()
     };
-    
+
     // Send to main process
     this._sendToMainProcess(logEntry);
-    
+
     // Add to local logs
     this.addLogEntry(logEntry);
   },
-  
+
   // Log a generic message
   log(message, level = 'info') {
     const logEntry = {
@@ -1092,14 +1092,14 @@ const sdkLogger = {
       message,
       timestamp: new Date()
     };
-    
+
     // Send to main process
     this._sendToMainProcess(logEntry);
-    
+
     // Add to local logs
     this.addLogEntry(logEntry);
   },
-  
+
   // Helper to send logs to main process
   _sendToMainProcess(logEntry) {
     if (window.sdkLoggerBridge?.sendSdkLog) {
@@ -1108,31 +1108,31 @@ const sdkLogger = {
       window.sdkLoggerBridge.sendSdkLog(markedLogEntry);
     }
   },
-  
+
   // Add a log entry to the UI and internal array
   addLogEntry(entry) {
     // Add to internal logs array
     this.logs.push(entry);
-    
+
     // Trim logs if we have too many
     if (this.logs.length > this.maxLogs) {
       this.logs = this.logs.slice(-this.maxLogs);
     }
-    
+
     // Add to UI
     const loggerContent = document.getElementById('sdkLoggerContent');
     if (loggerContent) {
       const logElement = document.createElement('div');
       logElement.className = `sdk-log-entry ${entry.type}`;
-      
+
       const timestamp = document.createElement('div');
       timestamp.className = 'timestamp';
       timestamp.textContent = this.formatTimestamp(entry.timestamp instanceof Date ? entry.timestamp : new Date(entry.timestamp));
       logElement.appendChild(timestamp);
-      
+
       // Format content based on log type
       let content = '';
-      
+
       switch (entry.type) {
         case 'api-call':
           content = `<span class="method">RecallAiSdk.${entry.method}()</span>`;
@@ -1140,35 +1140,35 @@ const sdkLogger = {
             content += `<div class="params">${this.formatParams(entry.params)}</div>`;
           }
           break;
-        
+
         case 'event':
           content = `<span class="event-type">Event: ${entry.eventType}</span>`;
           if (entry.data && Object.keys(entry.data).length > 0) {
             content += `<div class="params">${this.formatParams(entry.data)}</div>`;
           }
           break;
-        
+
         case 'error':
           content = `<span class="error-type">Error: ${entry.errorType}</span>`;
           if (entry.message) {
             content += `<div class="params">${entry.message}</div>`;
           }
           break;
-        
+
         default:
           content = entry.message;
       }
-      
+
       logElement.innerHTML += content;
-      
+
       // Add to the top of the log
       loggerContent.insertBefore(logElement, loggerContent.firstChild);
-      
+
       // Scroll to top to see latest entries
       loggerContent.scrollTop = 0;
     }
   },
-  
+
   // Clear all logs
   clear() {
     this.logs = [];
@@ -1177,7 +1177,7 @@ const sdkLogger = {
       loggerContent.innerHTML = '';
     }
   },
-  
+
   // Format timestamp to readable string
   formatTimestamp(date) {
     return date.toLocaleTimeString('en-US', {
@@ -1188,7 +1188,7 @@ const sdkLogger = {
       fractionalSecondDigits: 3
     });
   },
-  
+
   // Format parameters object to JSON string
   formatParams(params) {
     try {
@@ -1209,35 +1209,35 @@ const sdkLogger = {
 // Initialize the app when the DOM is loaded
 document.addEventListener('DOMContentLoaded', async () => {
   console.log('DOM content loaded, loading data from file...');
-  
+
   // Initialize the SDK Logger
   sdkLogger.init();
-  
+
   // Initialize the debug panel
   initDebugPanel();
-  
+
   // Try to load the latest data from file - this is the only data source
   await loadMeetingsDataFromFile();
-  
+
   // Render meetings only after loading from file
   console.log('Data loaded, rendering meetings...');
   renderMeetings();
-  
+
   // Initially show home view
   showHomeView();
-  
+
   // Listen for meeting detection status updates
   window.electronAPI.onMeetingDetectionStatus((data) => {
     console.log('Meeting detection status update:', data);
     const joinMeetingBtn = document.getElementById('joinMeetingBtn');
-    
+
     // Store the meeting detection state globally
     window.meetingDetected = data.detected;
-    
+
     if (joinMeetingBtn) {
       // Only show the button if we're in the home view and a meeting is detected
       const inHomeView = document.getElementById('homeView').style.display !== 'none';
-      
+
       if (data.detected && inHomeView) {
         // Show the join meeting button only in home view
         joinMeetingBtn.style.display = 'block';
@@ -1247,21 +1247,21 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     }
   });
-  
+
   // Listen for requests to open a meeting note (from notification click)
   window.electronAPI.onOpenMeetingNote((meetingId) => {
     console.log('Received request to open meeting note:', meetingId);
-    
+
     // Ensure we have the latest data before showing the note
     loadMeetingsDataFromFile().then(() => {
       console.log('Data refreshed, checking for meeting ID:', meetingId);
-      
+
       // Log the list of available meeting IDs to help with debugging
       console.log('Available meeting IDs:', pastMeetings.map(m => m.id));
-      
+
       // Verify the meeting exists in our data
       const meeting = [...upcomingMeetings, ...pastMeetings].find(m => m.id === meetingId);
-      
+
       if (meeting) {
         console.log('Found meeting to open:', meeting.title);
         setTimeout(() => {
@@ -1278,7 +1278,7 @@ document.addEventListener('DOMContentLoaded', async () => {
               console.log('Found meeting on second attempt:', retryMeeting.title);
               showEditorView(meetingId);
             } else {
-              console.error('Meeting still not found after retry. Available meetings:', 
+              console.error('Meeting still not found after retry. Available meetings:',
                 pastMeetings.map(m => `${m.id}: ${m.title}`));
             }
           });
@@ -1286,7 +1286,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     });
   });
-  
+
   // Listen for recording completed events
   window.electronAPI.onRecordingCompleted((meetingId) => {
     console.log('Recording completed for meeting:', meetingId);
@@ -1301,13 +1301,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
     }
   });
-  
+
   // Listen for video frame events
   window.electronAPI.onVideoFrame((data) => {
     // Only handle video frames for the currently open meeting
     if (data.noteId === currentEditingMeetingId) {
       console.log(`Video frame received for participant: ${data.participantName}`);
-      
+
       // Update the video preview in the debug panel
       updateDebugVideoPreview(data);
     }
@@ -1316,7 +1316,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Listen for participants update events
   window.electronAPI.onParticipantsUpdated((meetingId) => {
     console.log('Participants updated for meeting:', meetingId);
-    
+
     // If this note is currently being edited, refresh the data
     // and update the debug panel's participants section
     if (currentEditingMeetingId === meetingId) {
@@ -1326,10 +1326,10 @@ document.addEventListener('DOMContentLoaded', async () => {
           // Log the latest participant
           const latestParticipant = meeting.participants[meeting.participants.length - 1];
           console.log(`Participant updated: ${latestParticipant.name}`);
-          
+
           // Update the participants area in the debug panel
           updateDebugParticipants(meeting.participants);
-          
+
           // Show notification about new participant if debug panel is closed
           const debugPanel = document.getElementById('debugPanel');
           if (debugPanel && debugPanel.classList.contains('hidden')) {
@@ -1337,18 +1337,18 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (debugPanelToggle) {
               // Add pulse effect to show there's new content
               debugPanelToggle.classList.add('has-new-content');
-              
+
               // Create a mini notification for participant join
               const miniNotification = document.createElement('div');
               miniNotification.className = 'debug-notification participant-notification';
               miniNotification.innerHTML = `
-                <span class="debug-notification-title">New Participant:</span> 
+                <span class="debug-notification-title">New Participant:</span>
                 <span class="debug-notification-name">${latestParticipant.name || 'Unknown'}</span>
               `;
-              
+
               // Add to document
               document.body.appendChild(miniNotification);
-              
+
               // Remove after a short time
               setTimeout(() => {
                 miniNotification.classList.add('fade-out');
@@ -1366,7 +1366,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Listen for transcript update events
   window.electronAPI.onTranscriptUpdated((meetingId) => {
     console.log('Transcript updated for meeting:', meetingId);
-    
+
     // If this note is currently being edited, we can refresh the data
     // and update the debug panel's transcript section
     if (currentEditingMeetingId === meetingId) {
@@ -1376,10 +1376,10 @@ document.addEventListener('DOMContentLoaded', async () => {
           // Log the latest transcript entry
           const latestEntry = meeting.transcript[meeting.transcript.length - 1];
           console.log(`Latest transcript: ${latestEntry.speaker}: "${latestEntry.text}"`);
-          
+
           // Update the transcript area in the debug panel
           updateDebugTranscript(meeting.transcript);
-          
+
           // Show notification about new transcript if debug panel is closed
           const debugPanel = document.getElementById('debugPanel');
           if (debugPanel && debugPanel.classList.contains('hidden')) {
@@ -1387,19 +1387,19 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (debugPanelToggle) {
               // Add pulse effect to show there's new content
               debugPanelToggle.classList.add('has-new-content');
-              
+
               // Create a mini notification if we're recording
               if (window.isRecording) {
                 const miniNotification = document.createElement('div');
                 miniNotification.className = 'debug-notification transcript-notification';
                 miniNotification.innerHTML = `
-                  <span class="debug-notification-speaker">${latestEntry.speaker || 'Unknown'}</span>: 
+                  <span class="debug-notification-speaker">${latestEntry.speaker || 'Unknown'}</span>:
                   <span class="debug-notification-text">${latestEntry.text.slice(0, 40)}${latestEntry.text.length > 40 ? '...' : ''}</span>
                 `;
-                
+
                 // Add to document
                 document.body.appendChild(miniNotification);
-                
+
                 // Remove after a short time
                 setTimeout(() => {
                   miniNotification.classList.add('fade-out');
@@ -1414,11 +1414,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
     }
   });
-  
+
   // Listen for summary generation events
   window.electronAPI.onSummaryGenerated((meetingId) => {
     console.log('Summary generated for meeting:', meetingId);
-    
+
     // If this note is currently being edited, refresh the content
     if (currentEditingMeetingId === meetingId) {
       loadMeetingsDataFromFile().then(() => {
@@ -1430,41 +1430,41 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
     }
   });
-  
+
   // Listen for streaming summary updates
   window.electronAPI.onSummaryUpdate((data) => {
     const { meetingId, content, timestamp } = data;
-    
+
     // If this note is currently being edited, update the content immediately
     if (currentEditingMeetingId === meetingId) {
       // Get the editor element
       const editorElement = document.getElementById('simple-editor');
-      
+
       // Update the editor with the latest streamed content
       // Use requestAnimationFrame for smoother updates that don't block the main thread
       requestAnimationFrame(() => {
         editorElement.value = content;
-        
+
         // Force the editor to scroll to the bottom to follow the new text
         // This creates a better experience of watching text appear
         editorElement.scrollTop = editorElement.scrollHeight;
       });
     }
   });
-  
+
   // Add event listeners for buttons
   document.querySelector('.new-note-btn').addEventListener('click', async () => {
     console.log('New note button clicked');
     await createNewMeeting();
   });
-  
+
   // Join Meeting button handler
   document.getElementById('joinMeetingBtn').addEventListener('click', async () => {
     console.log('Join Meeting button clicked');
-    
+
     // Get the button element
     const joinButton = document.getElementById('joinMeetingBtn');
-    
+
     // Show loading state
     const originalText = joinButton.textContent;
     joinButton.disabled = true;
@@ -1474,7 +1474,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       </svg>
       Joining...
     `;
-    
+
     // First check if there's a detected meeting
     if (window.electronAPI.checkForDetectedMeeting) {
       try {
@@ -1485,17 +1485,17 @@ document.addEventListener('DOMContentLoaded', async () => {
           // Keep button disabled as we're navigating to a different view
         } else {
           console.log('No active meeting detected');
-          
+
           // Reset button state
           joinButton.disabled = false;
           joinButton.textContent = originalText;
-          
+
           // Show a little toast message
           const toast = document.createElement('div');
           toast.className = 'toast';
           toast.textContent = 'No active meeting detected';
           document.body.appendChild(toast);
-          
+
           // Remove toast after 3 seconds
           setTimeout(() => {
             toast.style.opacity = '0';
@@ -1506,17 +1506,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
       } catch (error) {
         console.error('Error joining meeting:', error);
-        
+
         // Reset button state
         joinButton.disabled = false;
         joinButton.textContent = originalText;
-        
+
         // Show error toast
         const toast = document.createElement('div');
         toast.className = 'toast';
         toast.textContent = 'Error joining meeting';
         document.body.appendChild(toast);
-        
+
         // Remove toast after 3 seconds
         setTimeout(() => {
           toast.style.opacity = '0';
@@ -1532,19 +1532,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Keep button disabled as we're navigating to a different view
       } catch (error) {
         console.error('Error joining meeting:', error);
-        
+
         // Reset button state
         joinButton.disabled = false;
         joinButton.textContent = originalText;
       }
     }
   });
-  
+
   document.querySelector('.search-input').addEventListener('input', (e) => {
     console.log('Search query:', e.target.value);
     // TODO: Implement search functionality
   });
-  
+
   // Add click event delegation for meeting cards and their actions
   document.querySelector('.main-content').addEventListener('click', (e) => {
     // Check if delete button was clicked
@@ -1552,46 +1552,46 @@ document.addEventListener('DOMContentLoaded', async () => {
       e.stopPropagation(); // Prevent opening the note
       const deleteBtn = e.target.closest('.delete-meeting-btn');
       const meetingId = deleteBtn.dataset.id;
-      
+
       if (confirm('Are you sure you want to delete this note? This cannot be undone.')) {
         console.log('Deleting meeting:', meetingId);
-        
+
         // Show loading state
         deleteBtn.disabled = true;
         deleteBtn.innerHTML = `<svg class="spinner" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
         </svg>`;
-        
+
         // Use the main process deletion via IPC
         window.electronAPI.deleteMeeting(meetingId)
           .then(result => {
             if (result.success) {
               console.log('Meeting deleted successfully on server');
-              
+
               // After successful server deletion, update local data
               // Remove from local pastMeetings array
               const pastMeetingIndex = pastMeetings.findIndex(meeting => meeting.id === meetingId);
               if (pastMeetingIndex !== -1) {
                 pastMeetings.splice(pastMeetingIndex, 1);
               }
-              
+
               // Remove from meetingsData as well
               const pastDataIndex = meetingsData.pastMeetings.findIndex(meeting => meeting.id === meetingId);
               if (pastDataIndex !== -1) {
                 meetingsData.pastMeetings.splice(pastDataIndex, 1);
               }
-              
+
               // Also check upcomingMeetings
               const upcomingMeetingIndex = upcomingMeetings.findIndex(meeting => meeting.id === meetingId);
               if (upcomingMeetingIndex !== -1) {
                 upcomingMeetings.splice(upcomingMeetingIndex, 1);
               }
-              
+
               const upcomingDataIndex = meetingsData.upcomingMeetings.findIndex(meeting => meeting.id === meetingId);
               if (upcomingDataIndex !== -1) {
                 meetingsData.upcomingMeetings.splice(upcomingDataIndex, 1);
               }
-              
+
               // Update the grouped meetings
               pastMeetingsByDate = {};
               meetingsData.pastMeetings.forEach(meeting => {
@@ -1601,7 +1601,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
                 pastMeetingsByDate[dateKey].push(meeting);
               });
-              
+
               // Re-render the meetings list
               renderMeetings();
             } else {
@@ -1624,7 +1624,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
       return;
     }
-    
+
     // Find the meeting card that was clicked (for opening)
     const card = e.target.closest('.meeting-card');
     if (card) {
@@ -1632,7 +1632,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       showEditorView(meetingId);
     }
   });
-  
+
   // Back button event listener
   document.getElementById('backButton').addEventListener('click', async () => {
     // Save content before going back to home
@@ -1640,25 +1640,25 @@ document.addEventListener('DOMContentLoaded', async () => {
     showHomeView();
     renderMeetings(); // Refresh the meeting list
   });
-  
+
   // Set up the initial auto-save handler
   setupAutoSaveHandler();
-  
+
   // Toggle sidebar button with initial state
   const toggleSidebarBtn = document.getElementById('toggleSidebar');
   const sidebar = document.getElementById('sidebar');
   const editorContent = document.querySelector('.editor-content');
   const chatInputContainer = document.querySelector('.chat-input-container');
-  
+
   // Start with sidebar hidden
   sidebar.classList.add('hidden');
   editorContent.classList.add('full-width');
   chatInputContainer.style.display = 'none';
-  
+
   toggleSidebarBtn.addEventListener('click', () => {
     sidebar.classList.toggle('hidden');
     editorContent.classList.toggle('full-width');
-    
+
     // Show/hide chat input with sidebar
     if (sidebar.classList.contains('hidden')) {
       chatInputContainer.style.display = 'none';
@@ -1666,11 +1666,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       chatInputContainer.style.display = 'block';
     }
   });
-  
+
   // Chat input handling
   const chatInput = document.getElementById('chatInput');
   const sendButton = document.getElementById('sendButton');
-  
+
   // When send button is clicked
   sendButton.addEventListener('click', () => {
     const message = chatInput.value.trim();
@@ -1681,7 +1681,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       chatInput.value = '';
     }
   });
-  
+
   // Send message on Enter key
   chatInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
@@ -1705,26 +1705,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     button.addEventListener('click', async () => {
       const action = button.textContent.trim();
       console.log(`AI action: ${action}`);
-      
+
       // Handle different AI actions
       if (action === 'Generate meeting summary') {
         if (!currentEditingMeetingId) {
           alert('No meeting is currently open');
           return;
         }
-        
+
         // Show loading state
         const originalText = button.textContent;
         button.textContent = 'Generating summary...';
         button.disabled = true;
-        
+
         try {
           // Use streaming version instead of standard version
           console.log('Starting streaming summary generation');
-          
+
           // Log the summary generation request to the SDK logger
           sdkLogger.log('Requesting AI summary generation for meeting: ' + currentEditingMeetingId);
-          
+
           window.electronAPI.generateMeetingSummaryStreaming(currentEditingMeetingId)
             .then(result => {
               if (result.success) {
@@ -1746,7 +1746,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         } catch (error) {
           console.error('Error starting streaming summary generation:', error);
           alert('Error starting summary generation: ' + (error.message || error));
-          
+
           // Reset button state
           button.textContent = originalText;
           button.disabled = false;
@@ -1760,13 +1760,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     });
   });
-  
+
   // UI variables will be initialized when the recording button is set up
-  
+
   // Listen for recording state change events
   window.electronAPI.onRecordingStateChange((data) => {
     console.log('Recording state change received:', data);
-    
+
     // If this state change is for the current note, update the UI
     if (data.noteId === currentEditingMeetingId) {
       console.log('Updating recording button for current note');
@@ -1774,49 +1774,49 @@ document.addEventListener('DOMContentLoaded', async () => {
       updateRecordingButtonUI(isActive, isActive ? data.recordingId : null);
     }
   });
-  
+
   // Setup record/stop button toggle
   const recordButton = document.getElementById('recordButton');
   if (recordButton) {
-    
+
     recordButton.addEventListener('click', async () => {
       // Only allow recording if we're in a note
       if (!currentEditingMeetingId) {
         alert('You need to be in a note to start recording');
         return;
       }
-      
+
       window.isRecording = !window.isRecording;
-      
+
       // Get the elements inside the button
       const recordIcon = recordButton.querySelector('.record-icon');
       const stopIcon = recordButton.querySelector('.stop-icon');
-      
+
       if (window.isRecording) {
         try {
           // Start recording
           console.log('Starting manual recording for meeting:', currentEditingMeetingId);
           recordButton.disabled = true; // Temporarily disable to prevent double-clicks
-          
+
           // Change to stop mode immediately for better feedback
           recordButton.classList.add('recording');
           recordIcon.style.display = 'none';
           stopIcon.style.display = 'block';
-          
+
           // Call the API to start recording
           const result = await window.electronAPI.startManualRecording(currentEditingMeetingId);
           recordButton.disabled = false;
-          
+
           if (result.success) {
             console.log('Manual recording started with ID:', result.recordingId);
             window.currentRecordingId = result.recordingId;
-            
+
             // Show a little toast message
             const toast = document.createElement('div');
             toast.className = 'toast';
             toast.textContent = 'Recording started...';
             document.body.appendChild(toast);
-            
+
             // Remove toast after 3 seconds
             setTimeout(() => {
               toast.style.opacity = '0';
@@ -1837,7 +1837,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           // Handle errors
           console.error('Error starting recording:', error);
           alert('Error starting recording: ' + (error.message || error));
-          
+
           // Reset UI state
           window.isRecording = false;
           recordButton.classList.remove('recording');
@@ -1851,25 +1851,25 @@ document.addEventListener('DOMContentLoaded', async () => {
           try {
             console.log('Stopping manual recording:', window.currentRecordingId);
             recordButton.disabled = true; // Temporarily disable
-            
+
             // Call the API to stop recording
             const result = await window.electronAPI.stopManualRecording(window.currentRecordingId);
-            
+
             // Change to record mode
             recordButton.classList.remove('recording');
             recordIcon.style.display = 'block';
             stopIcon.style.display = 'none';
             recordButton.disabled = false;
-            
+
             if (result.success) {
               console.log('Manual recording stopped successfully');
-              
+
               // Show a little toast message
               const toast = document.createElement('div');
               toast.className = 'toast';
               toast.textContent = 'Recording stopped. Generating summary...';
               document.body.appendChild(toast);
-              
+
               // Remove toast after 3 seconds
               setTimeout(() => {
                 toast.style.opacity = '0';
@@ -1877,15 +1877,15 @@ document.addEventListener('DOMContentLoaded', async () => {
                   document.body.removeChild(toast);
                 }, 300);
               }, 3000);
-              
+
               // The recording-completed event handler will take care of refreshing the content
               // and generating the summary when the recording finishes processing
-              
+
             } else {
               console.error('Failed to stop recording:', result.error);
               alert('Failed to stop recording: ' + result.error);
             }
-            
+
             // Reset recording ID
             window.currentRecordingId = null;
           } catch (error) {
@@ -1903,22 +1903,22 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     });
   }
-  
+
   // Handle generate notes button (Auto button)
   const generateButton = document.querySelector('.generate-btn');
   if (generateButton) {
     generateButton.addEventListener('click', async () => {
       console.log('Generating AI summary from transcript...');
-      
+
       // Check if we have an active meeting
       if (!currentEditingMeetingId) {
         alert('No meeting is currently open');
         return;
       }
-      
+
       // Store the original HTML content (including the sparkle icon)
       const originalHTML = generateButton.innerHTML;
-      
+
       // Show loading state - but keep the same structure
       generateButton.innerHTML = `
         <svg width="16" height="16" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-right: 4px;">
@@ -1929,16 +1929,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         Generating...
       `;
       generateButton.disabled = true;
-      
+
       try {
         // Use streaming version for better user experience
         console.log('Starting streaming summary generation');
-        
+
         // Log the Auto button summary generation to the SDK logger
         sdkLogger.log('Auto button: Requesting AI summary generation for meeting: ' + currentEditingMeetingId);
-        
+
         const result = await window.electronAPI.generateMeetingSummaryStreaming(currentEditingMeetingId);
-        
+
         if (result.success) {
           console.log('Summary generated successfully (streaming)');
           // Show a little toast message
@@ -1946,7 +1946,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           toast.className = 'toast';
           toast.textContent = 'Summary generated successfully!';
           document.body.appendChild(toast);
-          
+
           // Remove toast after 3 seconds
           setTimeout(() => {
             toast.style.opacity = '0';
@@ -1968,9 +1968,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     });
   }
-  
+
   // Video player function is now defined at the global scope
-  
+
   // Listen for summary generation events
   window.electronAPI.onSummaryGenerated((meetingId) => {
     console.log('Summary generated for meeting, checking for video:', meetingId);
@@ -1979,7 +1979,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       setTimeout(addVideoPlayerForNote, 500);
     }
   });
-  
+
   // Listen for recording completed events
   window.electronAPI.onRecordingCompleted((meetingId) => {
     console.log('Recording completed for meeting, checking for video:', meetingId);
@@ -1991,24 +1991,24 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
     }
   });
-  
+
   // Check for video when viewing a note
   document.addEventListener('DOMContentLoaded', function() {
     // Wait a bit for everything to load
     setTimeout(addVideoPlayerForNote, 1000);
   });
-  
+
   // Also listen for navigation to editor view
   if (document.getElementById('editorView')) {
     const observer = new MutationObserver(function(mutations) {
       mutations.forEach(function(mutation) {
-        if (mutation.attributeName === 'style' && 
+        if (mutation.attributeName === 'style' &&
             document.getElementById('editorView').style.display !== 'none') {
           setTimeout(addVideoPlayerForNote, 500);
         }
       });
     });
-    
+
     observer.observe(document.getElementById('editorView'), { attributes: true });
   }
 });

@@ -7,7 +7,7 @@ const { contextBridge, ipcRenderer } = require('electron');
 contextBridge.exposeInMainWorld('sdkLoggerBridge', {
   // Receive logs from main process
   onSdkLog: (callback) => ipcRenderer.on('sdk-log', (_, logEntry) => callback(logEntry)),
-  
+
   // Send logs from renderer to main process
   sendSdkLog: (logEntry) => ipcRenderer.send('sdk-log', logEntry)
 });
