@@ -42,9 +42,9 @@ body {
   z-index: 100;
 }
 
-/* #drag-region { */
-/*   -webkit-app-region: drag; */
-/* } */
+#drag-region {
+  -webkit-app-region: drag;
+}
 
 .header-left, .header-right {
   display: flex;

@@ -49,7 +49,6 @@ const createWindow = () => {
     width: 1024,
     height: 768,
     webPreferences: {
-      webSecurity: true, // set to false to allow files to be loaded in dev environment
       preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
       contextIsolation: true,
       nodeIntegration: false,
@@ -339,7 +338,18 @@ async function createDesktopSdkUpload() {
       recording_config: {
         transcript: {
           provider: {
-            deepgram_streaming: {}
+            deepgram_streaming: {
+              "model": "nova-3",
+              "version": "latest",
+              "language": "en-US",
+              "punctuate": true,
+              "filler_words": false,
+              "profanity_filter": false,
+              "redact": [],
+              "diarize": true,
+              "smart_format": true,
+              "interim_results": false
+            }
           }
         },
         realtime_endpoints: [
@@ -348,7 +358,8 @@ async function createDesktopSdkUpload() {
             events: [
               "participant_events.join",
               "video_separate_png.data",
-              "transcript.data"
+              "transcript.data",
+              "transcript.provider_data"
             ]
           },
         ],
@@ -601,6 +612,9 @@ function initSDK() {
     // Handle different event types
     if (evt.event === 'transcript.data' && evt.data && evt.data.data) {
       await processTranscriptData(evt);
+    }
+    else if (evt.event === 'transcript.provider_data' && evt.data && evt.data.data) {
+      await processTranscriptProviderData(evt);
     }
     else if (evt.event === 'participant_events.join' && evt.data && evt.data.data) {
       await processParticipantJoin(evt);
@@ -1354,6 +1368,19 @@ async function processParticipantJoin(evt) {
   }
 }
 
+let currentUnknownSpeaker = -1;
+
+async function processTranscriptProviderData(evt) {
+  // let speakerId = evt.data.data.payload.
+  try {
+    if (evt.data.data.data.payload.channel.alternatives[0].words[0].speaker !== undefined) {
+      currentUnknownSpeaker = evt.data.data.data.payload.channel.alternatives[0].words[0].speaker;
+    }
+  } catch (error) {
+    // console.error("Error processing provider data:", error);
+  }
+}
+
 // Function to process transcript data and store it with the meeting note
 async function processTranscriptData(evt) {
   try {
@@ -1382,7 +1409,14 @@ async function processTranscriptData(evt) {
     }
 
     // Get speaker information
-    const speaker = evt.data.data.participant?.name || "Unknown Speaker";
+    let speaker;
+    if (evt.data.data.participant?.name && evt.data.data.participant?.name !== "Host" && evt.data.data.participant?.name !== "Guest") {
+      speaker = evt.data.data.participant?.name;
+    } else if (currentUnknownSpeaker !== -1) {
+      speaker = `Speaker ${currentUnknownSpeaker}`;
+    } else {
+      speaker = "Unknown Speaker";
+    }
 
     // Combine all words into a single text
     const text = words.map(word => word.text).join(" ");

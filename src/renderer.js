@@ -276,18 +276,18 @@ function showHomeView() {
   document.getElementById('newNoteBtn').style.display = 'block';
   document.getElementById('toggleSidebar').style.display = 'none';
 
-  // Show Join Meeting button only if there's a detected meeting
+  // Show Record Meeting button and set its state based on meeting detection
   const joinMeetingBtn = document.getElementById('joinMeetingBtn');
   if (joinMeetingBtn) {
-    // Reset the button to its original state
-    joinMeetingBtn.disabled = false;
-    joinMeetingBtn.innerHTML = 'Join Meeting';
+    // Always show the button
+    joinMeetingBtn.style.display = 'block';
+    joinMeetingBtn.innerHTML = 'Record Meeting';
 
-    // Only show if there's a detected meeting
+    // Enable/disable based on meeting detection
     if (window.meetingDetected) {
-      joinMeetingBtn.style.display = 'block';
+      joinMeetingBtn.disabled = false;
     } else {
-      joinMeetingBtn.style.display = 'none';
+      joinMeetingBtn.disabled = true;
     }
   }
 }
@@ -321,14 +321,7 @@ function showEditorView(meetingId) {
   currentEditingMeetingId = meetingId;
   console.log(`Now editing meeting: ${meetingId} - ${meeting.title}`);
 
-  // Remove any existing video player
-  const existingPlayer = document.getElementById('video-player-container');
-  if (existingPlayer) {
-    existingPlayer.remove();
-  }
 
-  // Wait a bit for the content to load, then check for video
-  setTimeout(addVideoPlayerForNote, 500);
 
   // Set the meeting title
   document.getElementById('noteTitle').textContent = meeting.title;
@@ -449,52 +442,6 @@ function titleKeydownHandler(e) {
 // Create a single reference to the auto-save handler to ensure we can remove it properly
 let currentAutoSaveHandler = null;
 
-// Function to add a video player before the AI summary
-function addVideoPlayerForNote() {
-  if (!currentEditingMeetingId) return;
-
-  // Find the active meeting to get the video path
-  const meeting = [...upcomingMeetings, ...pastMeetings].find(m => m.id === currentEditingMeetingId);
-  if (!meeting || !meeting.videoPath) return;
-
-  console.log('Found video path for meeting:', meeting.videoPath);
-
-  try {
-    // Remove any existing video player first
-    const existingPlayer = document.getElementById('video-player-container');
-    if (existingPlayer) {
-      existingPlayer.remove();
-    }
-
-    // Create video element wrapper
-    const videoWrapper = document.createElement('div');
-    videoWrapper.id = 'video-player-container';
-    videoWrapper.style.cssText = 'margin: 10px 0; width: 100%;';
-
-    // Create the video element
-    videoWrapper.innerHTML = `
-      <video id="recording-video" width="100%" height="auto" controls style="max-height: 300px; border-radius: 4px; background: #000;">
-        <source src="file://${meeting.videoPath}" type="video/mp4">
-        Your browser does not support the video tag.
-      </video>
-    `;
-
-    // Get the editor element
-    const editorElement = document.getElementById('simple-editor');
-    if (!editorElement) return;
-
-    // Get the editor's parent
-    const editorParent = editorElement.parentElement;
-    if (!editorParent) return;
-
-    // Insert the video player directly before the editor
-    editorParent.insertBefore(videoWrapper, editorElement);
-
-    console.log('Added video player before AI summary');
-  } catch (error) {
-    console.error('Error adding video player:', error);
-  }
-}
 
 // Function to set up auto-save handler
 function setupAutoSaveHandler() {
@@ -749,6 +696,9 @@ function updateDebugTranscript(transcript) {
   const transcriptContent = document.getElementById('transcriptContent');
   if (!transcriptContent) return;
 
+  // Check if user was at bottom before clearing content
+  const wasAtBottom = transcriptContent.scrollTop + transcriptContent.clientHeight >= transcriptContent.scrollHeight - 5;
+
   // Clear previous content
   transcriptContent.innerHTML = '';
 
@@ -792,16 +742,44 @@ function updateDebugTranscript(transcript) {
 
   transcriptContent.appendChild(transcriptDiv);
 
-  // Scroll to the bottom to show the latest entries
-  transcriptContent.scrollTop = transcriptContent.scrollHeight;
+  // Only auto-scroll to bottom if user was at the bottom before the update
+  if (wasAtBottom) {
+    // Use setTimeout to ensure DOM has updated
+    setTimeout(() => {
+      transcriptContent.scrollTop = transcriptContent.scrollHeight;
+    }, 0);
+  }
 }
 
 // Function to update the video preview in the debug panel
 function updateDebugVideoPreview(frameData) {
+  // Get the image data from the frame
+  const { buffer, participantId, participantName, frameType } = frameData;
+
+  // Determine if this is a screenshare or participant video
+  const isScreenshare = frameType !== 'webcam';
+
+  if (isScreenshare) {
+    updateScreensharePreview(frameData);
+  } else {
+    updateParticipantVideoPreview(frameData);
+  }
+
+  // Make sure debug panel toggle shows new content notification if panel is closed
+  const debugPanel = document.getElementById('debugPanel');
+  if (debugPanel && debugPanel.classList.contains('hidden')) {
+    const debugPanelToggle = document.getElementById('debugPanelToggle');
+    if (debugPanelToggle && !debugPanelToggle.classList.contains('has-new-content')) {
+      debugPanelToggle.classList.add('has-new-content');
+    }
+  }
+}
+
+// Function to update participant video preview
+function updateParticipantVideoPreview(frameData) {
   const videoContent = document.getElementById('videoContent');
   if (!videoContent) return;
 
-  // Get the image data from the frame
   const { buffer, participantId, participantName, frameType } = frameData;
 
   // Check if we already have a container for this participant
@@ -831,10 +809,10 @@ function updateDebugVideoPreview(frameData) {
     videoImg.id = `video-frame-${participantId}`;
     participantVideoContainer.appendChild(videoImg);
 
-    // Add the frame type label (webcam or screenshare)
+    // Add the frame type label
     const typeLabel = document.createElement('div');
     typeLabel.className = 'video-frame-type';
-    typeLabel.textContent = frameType === 'webcam' ? 'Camera' : 'Screen';
+    typeLabel.textContent = 'Camera';
     participantVideoContainer.appendChild(typeLabel);
 
     // Add to the video content area
@@ -844,17 +822,52 @@ function updateDebugVideoPreview(frameData) {
   // Update the image with the new frame
   const videoImg = document.getElementById(`video-frame-${participantId}`);
   if (videoImg) {
-    // Set the image source to the base64 encoded PNG
     videoImg.src = `data:image/png;base64,${buffer}`;
   }
+}
 
-  // Make sure debug panel toggle shows new content notification if panel is closed
-  const debugPanel = document.getElementById('debugPanel');
-  if (debugPanel && debugPanel.classList.contains('hidden')) {
-    const debugPanelToggle = document.getElementById('debugPanelToggle');
-    if (debugPanelToggle && !debugPanelToggle.classList.contains('has-new-content')) {
-      debugPanelToggle.classList.add('has-new-content');
+// Function to update screenshare preview
+function updateScreensharePreview(frameData) {
+  const screenshareContent = document.getElementById('screenshareContent');
+  if (!screenshareContent) return;
+
+  const { buffer, participantId, participantName, frameType } = frameData;
+
+  // Check if we already have a container for this screenshare
+  let screenshareContainer = document.getElementById(`screenshare-participant-${participantId}`);
+
+  // If no container exists, create one
+  if (!screenshareContainer) {
+    // Clear the placeholder content if this is the first frame
+    if (screenshareContent.querySelector('.placeholder-content')) {
+      screenshareContent.innerHTML = '';
     }
+
+    // Create a container for this participant's screenshare
+    screenshareContainer = document.createElement('div');
+    screenshareContainer.id = `screenshare-participant-${participantId}`;
+    screenshareContainer.className = 'video-participant-container';
+
+    // Create an image element for the screenshare frame
+    const screenshareImg = document.createElement('img');
+    screenshareImg.className = 'video-frame';
+    screenshareImg.id = `screenshare-frame-${participantId}`;
+    screenshareContainer.appendChild(screenshareImg);
+
+    // Add the frame type label
+    const typeLabel = document.createElement('div');
+    typeLabel.className = 'video-frame-type';
+    typeLabel.textContent = 'Screen';
+    screenshareContainer.appendChild(typeLabel);
+
+    // Add to the screenshare content area
+    screenshareContent.appendChild(screenshareContainer);
+  }
+
+  // Update the image with the new frame
+  const screenshareImg = document.getElementById(`screenshare-frame-${participantId}`);
+  if (screenshareImg) {
+    screenshareImg.src = `data:image/png;base64,${buffer}`;
   }
 }
 
@@ -1164,8 +1177,11 @@ const sdkLogger = {
       // Add to the top of the log
       loggerContent.insertBefore(logElement, loggerContent.firstChild);
 
-      // Scroll to top to see latest entries
-      loggerContent.scrollTop = 0;
+      // Only auto-scroll to top if user is already at the top
+      const isAtTop = loggerContent.scrollTop <= 5;
+      if (isAtTop) {
+        loggerContent.scrollTop = 0;
+      }
     }
   },
 
@@ -1235,15 +1251,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.meetingDetected = data.detected;
 
     if (joinMeetingBtn) {
-      // Only show the button if we're in the home view and a meeting is detected
+      // Only update button state if we're in the home view
       const inHomeView = document.getElementById('homeView').style.display !== 'none';
 
-      if (data.detected && inHomeView) {
-        // Show the join meeting button only in home view
+      if (inHomeView) {
+        // Always show the button, but enable/disable based on meeting detection
         joinMeetingBtn.style.display = 'block';
-      } else {
-        // Hide the join meeting button
-        joinMeetingBtn.style.display = 'none';
+        joinMeetingBtn.disabled = !data.detected;
       }
     }
   });
@@ -1969,46 +1983,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  // Video player function is now defined at the global scope
 
-  // Listen for summary generation events
-  window.electronAPI.onSummaryGenerated((meetingId) => {
-    console.log('Summary generated for meeting, checking for video:', meetingId);
-    if (currentEditingMeetingId === meetingId) {
-      // Wait a moment for the content to update
-      setTimeout(addVideoPlayerForNote, 500);
-    }
-  });
 
   // Listen for recording completed events
   window.electronAPI.onRecordingCompleted((meetingId) => {
-    console.log('Recording completed for meeting, checking for video:', meetingId);
+    console.log('Recording completed for meeting:', meetingId);
     if (currentEditingMeetingId === meetingId) {
       // Reload the meeting data first
       loadMeetingsDataFromFile().then(() => {
-        // Then add the video player
-        setTimeout(addVideoPlayerForNote, 500);
+        // Refresh the editor with the updated content
+        const meeting = [...upcomingMeetings, ...pastMeetings].find(m => m.id === meetingId);
+        if (meeting) {
+          document.getElementById('simple-editor').value = meeting.content;
+        }
       });
     }
   });
 
-  // Check for video when viewing a note
-  document.addEventListener('DOMContentLoaded', function() {
-    // Wait a bit for everything to load
-    setTimeout(addVideoPlayerForNote, 1000);
-  });
-
-  // Also listen for navigation to editor view
-  if (document.getElementById('editorView')) {
-    const observer = new MutationObserver(function(mutations) {
-      mutations.forEach(function(mutation) {
-        if (mutation.attributeName === 'style' &&
-            document.getElementById('editorView').style.display !== 'none') {
-          setTimeout(addVideoPlayerForNote, 500);
-        }
-      });
-    });
-
-    observer.observe(document.getElementById('editorView'), { attributes: true });
-  }
 });

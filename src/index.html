@@ -3,7 +3,6 @@
   <head>
     <meta charset="UTF-8" />
     <title>Muesli - Debug Notes</title>
-
   </head>
   <body>
     <div class="app-container">
@@ -26,8 +25,8 @@
           </div>
         </div>
         <div class="header-right">
-          <button class="btn new-note-btn" id="newNoteBtn">In Person Meeting</button>
-          <button class="btn join-meeting-btn" id="joinMeetingBtn">Join Meeting</button>
+          <button class="btn new-note-btn" id="newNoteBtn">Record In-person Meeting</button>
+          <button class="btn join-meeting-btn" id="joinMeetingBtn">Record Meeting</button>
           <button id="toggleSidebar" class="btn toggle-sidebar-btn" style="display: none;">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M3 18H21V16H3V18ZM3 13H21V11H3V13ZM3 6V8H21V6H3Z" fill="#666666"/>
@@ -233,17 +232,32 @@ Chat with meeting transcript: https://notes.granola.ai/d/393a95cf-4788-4a47-9deb
           </div>
         </div>
 
-        <!-- Video Debug Section -->
+        <!-- Participant Video Debug Section -->
         <div class="debug-section" id="videoSection">
           <div class="debug-section-header">
-            <h4>Video Preview</h4>
+            <h4>Participant Video</h4>
           </div>
           <div class="debug-section-content" id="videoContent">
             <div class="placeholder-content video-placeholder">
               <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z" fill="#999"/>
               </svg>
-              <p>Video preview will appear here</p>
+              <p>Participant video will appear here</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Screenshare Video Debug Section -->
+        <div class="debug-section" id="screenshareSection">
+          <div class="debug-section-header">
+            <h4>Screenshare</h4>
+          </div>
+          <div class="debug-section-content" id="screenshareContent">
+            <div class="placeholder-content video-placeholder">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M20 18c1.1 0 1.99-.9 1.99-2L22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2H0v2h24v-2h-4zM4 6h16v10H4V6z" fill="#999"/>
+              </svg>
+              <p>Screenshare will appear here</p>
             </div>
           </div>
         </div>
