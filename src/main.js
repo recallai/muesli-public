@@ -332,7 +332,7 @@ async function createDesktopSdkUpload() {
       return null;
     }
 
-    const url = `${RECALLAI_API_URL}/api/v1/sdk-upload/`;
+    const url = `${RECALLAI_API_URL}/api/v1/sdk_upload/`;
 
     const response = await axios.post(url, {
       recording_config: {
