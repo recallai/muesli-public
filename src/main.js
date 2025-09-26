@@ -18,19 +18,18 @@ function getHeaderLines() {
 
 // Initialize OpenAI client with OpenRouter as the base URL
 const openai = new OpenAI({
-  baseURL: "https://openrouter.ai/api/v1",
-  apiKey: process.env.OPENROUTER_KEY,
+  apiKey: process.env.OPENAI_KEY,
   defaultHeaders: {
-    "HTTP-Referer": "https://recall.ai",
-    "X-Title": "Muesli AI Notetaker"
+    "HTTP-Referer": "https://app.getwiser.io",
+    "X-Title": "GetWiser AI Notetaker",
+    "OpenAI-Organization": process.env.OPENAI_ORGANIZATION,
   }
 });
 
 // Define available models with their capabilities
 const MODELS = {
   // Primary models
-  PRIMARY: "anthropic/claude-3.7-sonnet",
-  FALLBACKS: []
+  PRIMARY: "gpt-5-nano-2025-08-07",
 };
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
@@ -981,7 +980,7 @@ ipcMain.handle('generateMeetingSummaryStreaming', async (event, meetingId) => {
     }
 
     // Log summary generation to console instead of showing a notification
-    console.log('Generating streaming summary for meeting: ' + meetingId);
+    console.log(`Generating streaming summary for meeting: ${meetingId}`);
 
     // Get meeting title for use in the new content
     const meetingTitle = meeting.title || "Meeting Notes";
@@ -1479,6 +1478,7 @@ async function generateMeetingSummary(meeting, progressCallback = null) {
       `${entry.speaker}: ${entry.text}`
     ).join('\n');
 
+
     // Format detected participants if available
     let participantsText = "";
     if (meeting.participants && meeting.participants.length > 0) {
@@ -1508,7 +1508,7 @@ async function generateMeetingSummary(meeting, progressCallback = null) {
     const messages = [
       { role: "system", content: systemMessage },
       { role: "user", content: `Summarize the following meeting transcript with the EXACT format specified in your instructions:
-${participantsText ? participantsText + "\n\n" : ""}
+${participantsText ? `${participantsText}\n\n` : ""}
 Transcript:
 ${transcriptText}` }
     ];
@@ -1519,11 +1519,6 @@ ${transcriptText}` }
       const response = await openai.chat.completions.create({
         model: MODELS.PRIMARY, // Use our primary model for a good balance of quality and speed
         messages: messages,
-        max_tokens: 1000,
-        temperature: 0.7,
-        fallbacks: MODELS.FALLBACKS, // Use our defined fallback models
-        transform_to_openai: true, // Ensures consistent response format across models
-        route: "fallback" // Automatically use fallbacks if the primary model is unavailable
       });
 
       // Log which model was actually used
@@ -1531,67 +1526,61 @@ ${transcriptText}` }
 
       // Return the generated summary
       return response.choices[0].message.content;
-    } else {
-      // Use streaming version and accumulate the response
-      let fullText = '';
+    }
+    // Use streaming version and accumulate the response
+    let fullText = '';
 
-      // Create a streaming request
-      const stream = await openai.chat.completions.create({
-        model: MODELS.PRIMARY, // Use our primary model for a good balance of quality and speed
-        messages: messages,
-        max_tokens: 1000,
-        temperature: 0.7,
-        stream: true,
-        fallbacks: MODELS.FALLBACKS, // Use our defined fallback models
-        transform_to_openai: true, // Ensures consistent response format across models
-        route: "fallback" // Automatically use fallbacks if the primary model is unavailable
-      });
+    // Create a streaming request
+    const stream = await openai.chat.completions.create({
+      model: MODELS.PRIMARY, // Use our primary model for a good balance of quality and speed
+      messages: messages,
+      stream: true,
+    });
 
-      // Handle streaming events
-      return new Promise((resolve, reject) => {
-        // Process the stream
-        (async () => {
-          try {
-            // Log the model being used when first chunk arrives (if available)
-            let modelLogged = false;
+    // Handle streaming events
+    return new Promise((resolve, reject) => {
+      // Process the stream
+      (async () => {
+        try {
+          // Log the model being used when first chunk arrives (if available)
+          let modelLogged = false;
 
-            for await (const chunk of stream) {
-              // Log the model on first chunk if available
-              if (!modelLogged && chunk.model) {
-                console.log(`Streaming with model: ${chunk.model}`);
-                modelLogged = true;
-              }
-
-              // Extract the text content from the chunk
-              const content = chunk.choices[0]?.delta?.content || '';
-
-              if (content) {
-                // Add the new text chunk to our accumulated text
-                fullText += content;
-
-                // Log each token for debugging (less verbose)
-                if (content.length < 50) {
-                  console.log(`Received token: "${content}"`);
-                } else {
-                  console.log(`Received content of length: ${content.length}`);
-                }
-
-                // Call the progress callback immediately with each token
-                if (progressCallback) {
-                  progressCallback(fullText);
-                }
-              }
+          for await (const chunk of stream) {
+            // Log the model on first chunk if available
+            if (!modelLogged && chunk.model) {
+              console.log(`Streaming with model: ${chunk.model}`);
+              modelLogged = true;
             }
 
-            console.log('AI summary streaming completed');
-            resolve(fullText);
-          } catch (error) {
-            console.error('Stream error:', error);
-            reject(error);
+            // Extract the text content from the chunk
+            const content = chunk.choices[0]?.delta?.content || '';
+
+            if (content) {
+              // Add the new text chunk to our accumulated text
+              fullText += content;
+
+              // Log each token for debugging (less verbose)
+              if (content.length < 50) {
+                console.log(`Received token: "${content}"`);
+              } else {
+                console.log(`Received content of length: ${content.length}`);
+              }
+
+              // Call the progress callback immediately with each token
+              if (progressCallback) {
+                progressCallback(fullText);
+              }
+            }
           }
-        })();
-      });
-    }
+
+          console.log('AI summary streaming completed');
+          resolve(fullText);
+        } catch (error) {
+          console.error('Stream error:', error);
+          reject(error);
+        }
+      })();
+    });
   } catch (error) {
     console.error('Error generating meeting summary:', error);
 
