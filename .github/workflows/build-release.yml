@@ -9,7 +9,7 @@ on:
             release_type:
                 description: "Release type"
                 required: true
-                default: "draft"
+                default: "release"
                 type: choice
                 options:
                     - "draft"
