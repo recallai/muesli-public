@@ -20,7 +20,7 @@ jobs:
     build:
         strategy:
             matrix:
-                os: [windows-latest, macos-latest]
+                os: [windows-latest, macos-latest, ubuntu-latest]
 
         runs-on: ${{ matrix.os }}
 
@@ -55,6 +55,13 @@ jobs:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                   CSC_IDENTITY_AUTO_DISCOVERY: false # Disable code signing for now
 
+            # Linux-specific build
+            - name: Build Linux app
+              if: matrix.os == 'ubuntu-latest'
+              run: npm run dist
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
             # Upload artifacts for each platform
             - name: Upload Windows artifacts
               if: matrix.os == 'windows-latest'
@@ -76,6 +83,17 @@ jobs:
                       release/*.dmg
                       release/*.zip
                       release/*.pkg
+                  retention-days: 30
+
+            - name: Upload Linux artifacts
+              if: matrix.os == 'ubuntu-latest'
+              uses: actions/upload-artifact@v4
+              with:
+                  name: linux-build
+                  path: |
+                      release/*.AppImage
+                      release/*.deb
+                      release/*.tar.gz
                   retention-days: 30
 
     release:
@@ -124,6 +142,11 @@ jobs:
                       - `.dmg` - macOS disk image
                       - `*-mac.zip` - Portable macOS app
 
+                      **Linux:**
+                      - `.AppImage` - Universal Linux app
+                      - `.deb` - Debian/Ubuntu package
+                      - `.tar.gz` - Linux archive
+
                       ### 🚀 Installation
 
                       1. Download the appropriate file for your operating system
@@ -140,13 +163,16 @@ jobs:
                       ---
 
                       Built with ❤️ using Electron Builder
-                  draft: ${{ github.event.inputs.release_type == 'draft' || github.event_name != 'workflow_dispatch' }}
-                  prerelease: ${{ github.event.inputs.release_type == 'prerelease' }}
+                  draft: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.release_type == 'draft' }}
+                  prerelease: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.release_type == 'prerelease' }}
                   files: |
                       release-artifacts/**/*.exe
                       release-artifacts/**/*.zip
                       release-artifacts/**/*.dmg
                       release-artifacts/**/*.pkg
                       release-artifacts/**/*.msi
+                      release-artifacts/**/*.AppImage
+                      release-artifacts/**/*.deb
+                      release-artifacts/**/*.tar.gz
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
