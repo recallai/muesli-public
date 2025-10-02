@@ -7,8 +7,7 @@ This directory contains GitHub Actions workflows for automating the build and re
 ### 1. Build and Release (`build-release.yml`)
 
 **Triggers:**
-
-- **Tag Push**: Automatically triggers when you push a version tag (e.g., `v1.0.0`)
+- **Production Branch**: Automatically triggers when you push to the `production` branch
 - **Manual Trigger**: Can be triggered manually from GitHub Actions tab
 
 **What it does:**
@@ -52,25 +51,25 @@ This directory contains GitHub Actions workflows for automating the build and re
 
 ## How to Create a Release
 
-### Method 1: Using Git Tags (Recommended)
+### Method 1: Using Production Branch (Recommended)
 
-1. **Commit your changes:**
-
+1. **Prepare your changes on a development branch:**
    ```bash
    git add .
-   git commit -m "Release v1.0.0"
+   git commit -m "feat: new features for release"
+   git push origin your-feature-branch
    ```
 
-2. **Create and push a version tag:**
-
+2. **Merge to production branch:**
    ```bash
-   git tag v1.0.0
-   git push origin v1.0.0
+   git checkout production
+   git merge your-feature-branch
+   git push origin production
    ```
 
 3. **The workflow will automatically:**
    - Build for all platforms
-   - Create a GitHub release
+   - Create a GitHub release with version from package.json + timestamp
    - Upload all build artifacts
 
 ### Method 2: Manual Trigger
@@ -135,7 +134,8 @@ To enable code signing, you would need to:
 
 1. Check repository permissions
 2. Verify `GITHUB_TOKEN` has sufficient permissions
-3. Ensure tag format matches `v*` pattern
+3. Ensure you're pushing to the `production` branch
+4. Check that package.json has a valid version number
 
 ## Files Generated
 
@@ -153,9 +153,23 @@ release/
 └── Muesli-1.0.0.tar.gz             # Linux archive
 ```
 
+**Release Naming:**
+- **Production branch releases**: `v1.0.0-20251002-143000` (package.json version + timestamp)
+- **Manual releases**: `v20251002-143000` (timestamp-based)
+
 ## Next Steps
 
-1. **Test the workflow** by creating a test tag
-2. **Customize release notes** in the workflow file
-3. **Set up code signing** for production releases
-4. **Configure auto-update** functionality if desired
+1. **Test the workflow** by pushing to the production branch
+2. **Set up a development workflow** with feature branches merging to production
+3. **Customize release notes** in the workflow file
+4. **Set up code signing** for production releases
+5. **Configure auto-update** functionality if desired
+
+## Development Workflow
+
+**Recommended Git Flow:**
+1. Create feature branches from `main` or development branch
+2. Make your changes and test locally
+3. Create pull requests to review changes
+4. Merge approved changes to `production` branch for releases
+5. Workflow automatically builds and creates releases
