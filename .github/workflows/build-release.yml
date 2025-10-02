@@ -3,7 +3,7 @@ name: Build and Release
 on:
     push:
         branches:
-            - "production" # Trigger on pushes to production branch
+            - "release" # Trigger on pushes to production branch
     workflow_dispatch: # Allow manual triggering
         inputs:
             release_type:
