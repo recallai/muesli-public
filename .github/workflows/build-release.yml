@@ -2,8 +2,8 @@ name: Build and Release
 
 on:
     push:
-        tags:
-            - "v*" # Trigger on version tags (e.g., v1.0.0)
+        branches:
+            - "production" # Trigger on pushes to production branch
     workflow_dispatch: # Allow manual triggering
         inputs:
             release_type:
@@ -90,7 +90,7 @@ jobs:
     release:
         needs: build
         runs-on: ubuntu-latest
-        if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+        if: github.ref == 'refs/heads/production' || github.event_name == 'workflow_dispatch'
 
         steps:
             - name: Checkout code
@@ -104,13 +104,15 @@ jobs:
             - name: Display structure of downloaded files
               run: find release-artifacts -type f -name "*" | head -20
 
-            - name: Get tag name
+            - name: Get release version
               id: tag
               run: |
                   if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
                     echo "tag_name=v$(date +%Y%m%d-%H%M%S)" >> $GITHUB_OUTPUT
                   else
-                    echo "tag_name=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+                    # For production branch, use package.json version with current date/time
+                    VERSION=$(node -p "require('./package.json').version")
+                    echo "tag_name=v${VERSION}-$(date +%Y%m%d-%H%M%S)" >> $GITHUB_OUTPUT
                   fi
 
             - name: Create Release
