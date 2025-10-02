@@ -11,7 +11,7 @@
 		"pack": "npm run build:prod && electron-builder --dir",
 		"dist": "npm run build:prod && electron-builder",
 		"publish": "npm run build:prod && electron-builder --publish=always",
-		"lint": "echo \"No linting configured\""
+		"lint": "echo \"No linting configured currently\""
 	},
 	"keywords": [],
 	"author": {
