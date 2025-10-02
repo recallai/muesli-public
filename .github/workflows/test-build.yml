@@ -2,9 +2,9 @@ name: Test Build
 
 on:
     pull_request:
-        branches: [Deployment-and-packaging, release]
+        branches: [Deployment-and-Packaging, release]
     push:
-        branches: [Deployment-and-packaging, release]
+        branches: [Deployment-and-Packaging, release]
         paths-ignore:
             - "**.md"
             - "docs/**"
