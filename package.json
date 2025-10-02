@@ -1,59 +1,111 @@
 {
-  "name": "muesli",
-  "productName": "Muesli",
-  "version": "1.0.0",
-  "description": "Muesli meeting recorder",
-  "main": ".webpack/main",
-  "scripts": {
-    "start": "electron-forge start",
-    "package": "electron-forge package",
-    "make": "electron-forge make",
-    "publish": "electron-forge publish",
-    "lint": "echo \"No linting configured\""
-  },
-  "keywords": [],
-  "author": {
-    "name": "Nick Faro",
-    "email": "yux50000@hotmail.com"
-  },
-  "license": "MIT",
-  "devDependencies": {
-    "@babel/plugin-proposal-class-properties": "^7.18.6",
-    "@electron-forge/cli": "^7.8.0",
-    "@electron-forge/maker-deb": "^7.8.0",
-    "@electron-forge/maker-dmg": "^7.8.1",
-    "@electron-forge/maker-rpm": "^7.8.0",
-    "@electron-forge/maker-squirrel": "^7.8.0",
-    "@electron-forge/maker-zip": "^7.8.0",
-    "@electron-forge/plugin-auto-unpack-natives": "^7.8.0",
-    "@electron-forge/plugin-fuses": "^7.8.0",
-    "@electron-forge/plugin-webpack": "^7.8.0",
-    "@electron/fuses": "^1.8.0",
-    "@vercel/webpack-asset-relocator-loader": "^1.7.3",
-    "css-loader": "^6.11.0",
-    "electron": "36.0.1",
-    "node-loader": "^2.1.0",
-    "style-loader": "^3.3.4"
-  },
-  "overrides": {
-    "@electron/packager": {
-      "@electron/osx-sign": "github:recallai/osx-sign"
-    }
-  },
-  "dependencies": {
-    "@anthropic-ai/sdk": "^0.40.1",
-    "@recallai/desktop-sdk": "^1.1.0",
-    "@timfish/forge-externals-plugin": "^0.2.1",
-    "axios": "^1.9.0",
-    "codemirror": "^6.0.1",
-    "dotenv": "^16.5.0",
-    "easymde": "^2.20.0",
-    "electron-squirrel-startup": "^1.0.1",
-    "marked": "^5.0.0",
-    "openai": "^4.97.0",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
-    "react-markdown": "^10.1.0",
-    "simplemde": "^1.11.2"
-  }
+	"name": "muesli",
+	"productName": "Muesli",
+	"version": "1.0.0",
+	"description": "Muesli meeting recorder",
+	"main": "dist/main.js",
+	"scripts": {
+		"start": "npm run build && electron dist/main.js",
+		"build": "webpack --mode=development",
+		"build:prod": "webpack --mode=production",
+		"pack": "npm run build:prod && electron-builder --dir",
+		"dist": "npm run build:prod && electron-builder",
+		"publish": "npm run build:prod && electron-builder --publish=always",
+		"lint": "echo \"No linting configured\""
+	},
+	"keywords": [],
+	"author": {
+		"name": "Nick Faro",
+		"email": "yux50000@hotmail.com"
+	},
+	"license": "MIT",
+	"devDependencies": {
+		"@babel/plugin-proposal-class-properties": "^7.18.6",
+		"@vercel/webpack-asset-relocator-loader": "^1.7.3",
+		"copy-webpack-plugin": "^13.0.1",
+		"css-loader": "^6.11.0",
+		"electron": "^36.0.1",
+		"electron-builder": "^26.0.12",
+		"html-webpack-plugin": "^5.6.4",
+		"mini-css-extract-plugin": "^2.9.4",
+		"node-loader": "^2.1.0",
+		"style-loader": "^3.3.4",
+		"webpack": "^5.102.0",
+		"webpack-cli": "^6.0.1",
+		"webpack-node-externals": "^3.0.0"
+	},
+	"overrides": {
+		"@electron/packager": {
+			"@electron/osx-sign": "github:recallai/osx-sign"
+		}
+	},
+	"dependencies": {
+		"@anthropic-ai/sdk": "^0.40.1",
+		"@recallai/desktop-sdk": "^1.1.0",
+		"axios": "^1.9.0",
+		"codemirror": "^6.0.1",
+		"dotenv": "^16.5.0",
+		"easymde": "^2.20.0",
+		"electron-squirrel-startup": "^1.0.1",
+		"marked": "^5.0.0",
+		"openai": "^4.97.0",
+		"react": "^19.1.0",
+		"react-dom": "^19.1.0",
+		"react-markdown": "^10.1.0",
+		"simplemde": "^1.11.2"
+	},
+	"build": {
+		"appId": "com.axoblade.muesli",
+		"productName": "Muesli",
+		"directories": {
+			"output": "release"
+		},
+		"files": [
+			"dist/**/*",
+			"node_modules/**/*",
+			"package.json"
+		],
+		"extraResources": [
+			{
+				"from": "node_modules/@recallai",
+				"to": "node_modules/@recallai"
+			}
+		],
+		"mac": {
+			"icon": "muesli.icns",
+			"category": "public.app-category.productivity",
+			"entitlements": "Entitlements.plist",
+			"target": [
+				{
+					"target": "dmg",
+					"arch": [
+						"x64",
+						"arm64"
+					]
+				}
+			]
+		},
+		"win": {
+			"icon": "muesli.ico",
+			"target": [
+				{
+					"target": "nsis",
+					"arch": [
+						"x64"
+					]
+				}
+			]
+		},
+		"linux": {
+			"icon": "muesli.png",
+			"target": [
+				{
+					"target": "AppImage",
+					"arch": [
+						"x64"
+					]
+				}
+			]
+		}
+	}
 }
