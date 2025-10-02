@@ -71,6 +71,11 @@
 				"to": "node_modules/@recallai"
 			}
 		],
+		"publish": {
+			"provider": "github",
+			"owner": "axoblade",
+			"repo": "muesli-public"
+		},
 		"mac": {
 			"icon": "muesli.icns",
 			"category": "public.app-category.productivity",
@@ -78,6 +83,13 @@
 			"target": [
 				{
 					"target": "dmg",
+					"arch": [
+						"x64",
+						"arm64"
+					]
+				},
+				{
+					"target": "zip",
 					"arch": [
 						"x64",
 						"arm64"
@@ -93,6 +105,18 @@
 					"arch": [
 						"x64"
 					]
+				},
+				{
+					"target": "portable",
+					"arch": [
+						"x64"
+					]
+				},
+				{
+					"target": "zip",
+					"arch": [
+						"x64"
+					]
 				}
 			]
 		},
@@ -104,8 +128,27 @@
 					"arch": [
 						"x64"
 					]
+				},
+				{
+					"target": "deb",
+					"arch": [
+						"x64"
+					]
+				},
+				{
+					"target": "tar.gz",
+					"arch": [
+						"x64"
+					]
 				}
 			]
+		},
+		"nsis": {
+			"oneClick": false,
+			"perMachine": false,
+			"allowToChangeInstallationDirectory": true,
+			"createDesktopShortcut": true,
+			"createStartMenuShortcut": true
 		}
 	}
 }

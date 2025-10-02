@@ -1,0 +1,45 @@
+name: Test Build
+
+on:
+    pull_request:
+        branches: [main, master]
+    push:
+        branches: [main, master]
+        paths-ignore:
+            - "**.md"
+            - "docs/**"
+
+jobs:
+    test-build:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: "20"
+                  cache: "npm"
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Run build
+              run: npm run build
+
+            - name: Run production build
+              run: npm run build:prod
+
+            - name: Test electron-builder config
+              run: npm run pack
+              env:
+                  CSC_IDENTITY_AUTO_DISCOVERY: false
+
+            - name: Upload build artifacts
+              uses: actions/upload-artifact@v4
+              with:
+                  name: test-build
+                  path: release/
+                  retention-days: 7
