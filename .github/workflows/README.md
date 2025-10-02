@@ -7,6 +7,7 @@ This directory contains GitHub Actions workflows for automating the build and re
 ### 1. Build and Release (`build-release.yml`)
 
 **Triggers:**
+
 - **Production Branch**: Automatically triggers when you push to the `production` branch
 - **Manual Trigger**: Can be triggered manually from GitHub Actions tab
 
@@ -54,6 +55,7 @@ This directory contains GitHub Actions workflows for automating the build and re
 ### Method 1: Using Production Branch (Recommended)
 
 1. **Prepare your changes on a development branch:**
+
    ```bash
    git add .
    git commit -m "feat: new features for release"
@@ -61,6 +63,7 @@ This directory contains GitHub Actions workflows for automating the build and re
    ```
 
 2. **Merge to production branch:**
+
    ```bash
    git checkout production
    git merge your-feature-branch
@@ -154,6 +157,7 @@ release/
 ```
 
 **Release Naming:**
+
 - **Production branch releases**: `v1.0.0-20251002-143000` (package.json version + timestamp)
 - **Manual releases**: `v20251002-143000` (timestamp-based)
 
@@ -168,6 +172,7 @@ release/
 ## Development Workflow
 
 **Recommended Git Flow:**
+
 1. Create feature branches from `main` or development branch
 2. Make your changes and test locally
 3. Create pull requests to review changes
