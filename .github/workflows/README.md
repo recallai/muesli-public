@@ -70,8 +70,10 @@ This directory contains GitHub Actions workflows for automating the build and re
    ```
 
 3. **The workflow will automatically:**
+   - Auto-increment the patch version (e.g., v1.0.0 → v1.0.1)
+   - Update package.json with the new version
    - Build for all platforms
-   - Create a GitHub release with version from package.json + timestamp
+   - Create a GitHub release with the incremented version
    - Upload all build artifacts
 
 ### Method 2: Manual Trigger
@@ -116,6 +118,18 @@ To enable code signing, you would need to:
 2. Configure signing in the workflow
 3. Update Electron Builder configuration
 
+### Version Management
+
+**Automatic Version Incrementing:**
+- ✅ **Patch versions** are automatically incremented (e.g., v1.0.0 → v1.0.1 → v1.0.2)
+- ✅ **package.json** is automatically updated with the new version
+- ✅ **Git commit** is created with the version bump
+- ✅ **Release tag** is created with semantic versioning
+
+**Manual Version Control:**
+- For **major/minor** version bumps, manually update `package.json` before merging to release branch
+- The workflow will increment from your manual version (e.g., if you set v2.0.0, next auto-release will be v2.0.1)
+
 ## Troubleshooting
 
 ### Build Failures
@@ -157,7 +171,7 @@ release/
 
 **Release Naming:**
 
-- **Release branch releases**: `v1.0.0-20251002-143000` (package.json version + timestamp)
+- **Release branch releases**: `v1.0.1`, `v1.0.2`, `v1.0.3` (automatically incremented semantic versions)
 - **Manual releases**: `v20251002-143000` (timestamp-based)
 
 ## Next Steps
