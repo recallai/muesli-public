@@ -7,8 +7,7 @@ This directory contains GitHub Actions workflows for automating the build and re
 ### 1. Build and Release (`build-release.yml`)
 
 **Triggers:**
-
-- **Production Branch**: Automatically triggers when you push to the `production` branch
+- **Release Branch**: Automatically triggers when you push to the `release` branch
 - **Manual Trigger**: Can be triggered manually from GitHub Actions tab
 
 **What it does:**
@@ -52,7 +51,7 @@ This directory contains GitHub Actions workflows for automating the build and re
 
 ## How to Create a Release
 
-### Method 1: Using Production Branch (Recommended)
+### Method 1: Using Release Branch (Recommended)
 
 1. **Prepare your changes on a development branch:**
 
@@ -62,12 +61,12 @@ This directory contains GitHub Actions workflows for automating the build and re
    git push origin your-feature-branch
    ```
 
-2. **Merge to production branch:**
+2. **Merge to release branch:**
 
    ```bash
-   git checkout production
+   git checkout release
    git merge your-feature-branch
-   git push origin production
+   git push origin release
    ```
 
 3. **The workflow will automatically:**
@@ -137,7 +136,7 @@ To enable code signing, you would need to:
 
 1. Check repository permissions
 2. Verify `GITHUB_TOKEN` has sufficient permissions
-3. Ensure you're pushing to the `production` branch
+3. Ensure you're pushing to the `release` branch
 4. Check that package.json has a valid version number
 
 ## Files Generated
@@ -158,13 +157,13 @@ release/
 
 **Release Naming:**
 
-- **Production branch releases**: `v1.0.0-20251002-143000` (package.json version + timestamp)
+- **Release branch releases**: `v1.0.0-20251002-143000` (package.json version + timestamp)
 - **Manual releases**: `v20251002-143000` (timestamp-based)
 
 ## Next Steps
 
-1. **Test the workflow** by pushing to the production branch
-2. **Set up a development workflow** with feature branches merging to production
+1. **Test the workflow** by pushing to the release branch
+2. **Set up a development workflow** with feature branches merging to release
 3. **Customize release notes** in the workflow file
 4. **Set up code signing** for production releases
 5. **Configure auto-update** functionality if desired
@@ -176,5 +175,5 @@ release/
 1. Create feature branches from `main` or development branch
 2. Make your changes and test locally
 3. Create pull requests to review changes
-4. Merge approved changes to `production` branch for releases
+4. Merge approved changes to `release` branch for releases
 5. Workflow automatically builds and creates releases
