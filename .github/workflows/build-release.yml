@@ -61,7 +61,10 @@ jobs:
               uses: actions/upload-artifact@v4
               with:
                   name: windows-build
-                  path: release/*
+                  path: |
+                      release/*.exe
+                      release/*.zip
+                      release/*.msi
                   retention-days: 30
 
             - name: Upload macOS artifacts
@@ -69,7 +72,10 @@ jobs:
               uses: actions/upload-artifact@v4
               with:
                   name: macos-build
-                  path: release/*
+                  path: |
+                      release/*.dmg
+                      release/*.zip
+                      release/*.pkg
                   retention-days: 30
 
     release:
@@ -118,11 +124,6 @@ jobs:
                       - `.dmg` - macOS disk image
                       - `*-mac.zip` - Portable macOS app
 
-                      **Linux:**
-                      - `.AppImage` - Universal Linux app
-                      - `.deb` - Debian/Ubuntu package
-                      - `.tar.gz` - Linux archive
-
                       ### 🚀 Installation
 
                       1. Download the appropriate file for your operating system
@@ -142,6 +143,10 @@ jobs:
                   draft: ${{ github.event.inputs.release_type == 'draft' || github.event_name != 'workflow_dispatch' }}
                   prerelease: ${{ github.event.inputs.release_type == 'prerelease' }}
                   files: |
-                      release-artifacts/**/*
+                      release-artifacts/**/*.exe
+                      release-artifacts/**/*.zip
+                      release-artifacts/**/*.dmg
+                      release-artifacts/**/*.pkg
+                      release-artifacts/**/*.msi
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
