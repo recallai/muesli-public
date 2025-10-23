@@ -120,6 +120,16 @@ app.whenReady().then(() => {
     console.error("Couldn't create the recording path:", e);
   }
 
+    // Create meetings file if it doesn't exist
+    try {
+      if (!fs.existsSync(meetingsFilePath)) {
+        const initialData = { upcomingMeetings: [], pastMeetings: [] };
+        fs.writeFileSync(meetingsFilePath, JSON.stringify(initialData, null, 2));
+      }
+    } catch (e) {
+      console.error("Couldn't create the meetings file:", e);
+    }
+
   // Initialize the Recall.ai SDK
   initSDK();
 
