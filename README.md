@@ -4,18 +4,26 @@ This is a demo application that shows off what you can build with the [Recall.ai
 
 This repo is intended to be a mockup of the kind of experience you can build using the Desktop Recording SDK. If you just want a minimal, easily-runnable example to use as a template for your project, or just want to see the bare minimum Desktop Recording SDK integration, check out one of the other sample applications:
 
-* https://github.com/recallai/desktop-sdk-electron-vite-sample
-* https://github.com/recallai/desktop-sdk-electron-webpack-sample
+- https://github.com/recallai/desktop-sdk-electron-vite-sample
+- https://github.com/recallai/desktop-sdk-electron-webpack-sample
 
 # Setup
 
-Modify `.env` to include your Recall.ai API key:
+- Copy the `env.example` file to a `.env` file:
+
+```
+cp .env.example .env
+```
+
+- Replace RECALLAI_API_URL with the base URL for the [Recall region](https://docs.recall.ai/docs/regions#/) that you're using.
+
+- Modify `.env` to include your Recall.ai API key:
 
 ```
 RECALLAI_API_KEY=<your key>
 ```
 
-Additionally, this project by default tries to do live transcription using Deepgram; you'll need to configure your Deepgram credential on the [Recall.ai dashboard!](https://www.recall.ai/login)
+This project also tries to use live transcription with Deepgram by default. To enable this, you'll need to configure your Deepgram credential on the Recall.ai dashboard. Follow our [Deepgram real-time transcription guide](https://docs.recall.ai/docs/realtime-transcription#/deepgram-transcription-setup) to set this up.
 
 If you want to enable the AI summary after a recording is finished, you can specify an OpenRouter API key.
 
@@ -23,7 +31,7 @@ If you want to enable the AI summary after a recording is finished, you can spec
 OPENROUTER_KEY=<your key>
 ```
 
-To launch:
+To launch the Muesli application:
 
 ```sh
 npm install
