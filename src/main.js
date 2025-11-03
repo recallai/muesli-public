@@ -120,15 +120,15 @@ app.whenReady().then(() => {
     console.error("Couldn't create the recording path:", e);
   }
 
-    // Create meetings file if it doesn't exist
-    try {
-      if (!fs.existsSync(meetingsFilePath)) {
-        const initialData = { upcomingMeetings: [], pastMeetings: [] };
-        fs.writeFileSync(meetingsFilePath, JSON.stringify(initialData, null, 2));
-      }
-    } catch (e) {
-      console.error("Couldn't create the meetings file:", e);
+  // Create meetings file if it doesn't exist
+  try {
+    if (!fs.existsSync(meetingsFilePath)) {
+      const initialData = { upcomingMeetings: [], pastMeetings: [] };
+      fs.writeFileSync(meetingsFilePath, JSON.stringify(initialData, null, 2));
     }
+  } catch (e) {
+    console.error("Couldn't create the meetings file:", e);
+  }
 
   // Initialize the Recall.ai SDK
   initSDK();
@@ -174,7 +174,7 @@ const activeRecordings = {
   recordings: {},
 
   // Register a new recording
-  addRecording: function(recordingId, noteId, platform = 'unknown') {
+  addRecording: function (recordingId, noteId, platform = 'unknown') {
     this.recordings[recordingId] = {
       noteId,
       platform,
@@ -185,7 +185,7 @@ const activeRecordings = {
   },
 
   // Update a recording's state
-  updateState: function(recordingId, state) {
+  updateState: function (recordingId, state) {
     if (this.recordings[recordingId]) {
       this.recordings[recordingId].state = state;
       console.log(`Recording ${recordingId} state updated to: ${state}`);
@@ -195,7 +195,7 @@ const activeRecordings = {
   },
 
   // Remove a recording
-  removeRecording: function(recordingId) {
+  removeRecording: function (recordingId) {
     if (this.recordings[recordingId]) {
       delete this.recordings[recordingId];
       console.log(`Recording ${recordingId} removed from global state`);
@@ -205,7 +205,7 @@ const activeRecordings = {
   },
 
   // Get active recording for a note
-  getForNote: function(noteId) {
+  getForNote: function (noteId) {
     for (const [recordingId, info] of Object.entries(this.recordings)) {
       if (info.noteId === noteId) {
         return { recordingId, ...info };
@@ -215,7 +215,7 @@ const activeRecordings = {
   },
 
   // Get all active recordings
-  getAll: function() {
+  getAll: function () {
     return { ...this.recordings };
   }
 };
@@ -228,7 +228,7 @@ const fileOperationManager = {
   lastReadTime: 0,
 
   // Read the meetings data with caching to reduce file I/O
-  readMeetingsData: async function() {
+  readMeetingsData: async function () {
     // If we have cached data that's recent (less than 500ms old), use it
     const now = Date.now();
     if (this.cachedData && (now - this.lastReadTime < 500)) {
@@ -253,7 +253,7 @@ const fileOperationManager = {
   },
 
   // Schedule an operation that needs to update the meetings data
-  scheduleOperation: async function(operationFn) {
+  scheduleOperation: async function (operationFn) {
     return new Promise((resolve, reject) => {
       // Add this operation to the queue
       this.pendingOperations.push({
@@ -270,7 +270,7 @@ const fileOperationManager = {
   },
 
   // Process the operation queue sequentially
-  processQueue: async function() {
+  processQueue: async function () {
     if (this.pendingOperations.length === 0 || this.isProcessing) {
       return;
     }
@@ -323,64 +323,23 @@ const fileOperationManager = {
   },
 
   // Helper to write data directly - internally uses scheduleOperation
-  writeData: async function(data) {
+  writeData: async function (data) {
     return this.scheduleOperation(() => data); // Simply return the data to write
   }
 };
 
-// API configuration for Recall.ai
-const RECALLAI_API_URL = process.env.RECALLAI_API_URL || 'https://api.recall.ai';
-const RECALLAI_API_KEY = process.env.RECALLAI_API_KEY;
-
 // Create a desktop SDK upload token
 async function createDesktopSdkUpload() {
   try {
-    console.log(`Creating upload token with API key: ${RECALLAI_API_KEY}`);
+    const response = await axios.get("http://localhost:3000/start-recording", { timeout: 10000 });
 
-    if (!RECALLAI_API_KEY) {
-      console.error("RECALLAI_API_KEY is missing! Set it in .env file");
+    if (response.data.status !== 'success') {
+      console.error("Failed to create upload token:", response.data.message);
       return null;
+    } else {
+      console.log("Upload token created successfully:", response.data.token);
+      return response.data;
     }
-
-    const url = `${RECALLAI_API_URL}/api/v1/sdk_upload/`;
-
-    const response = await axios.post(url, {
-      recording_config: {
-        transcript: {
-          provider: {
-            deepgram_streaming: {
-              "model": "nova-3",
-              "version": "latest",
-              "language": "en-US",
-              "punctuate": true,
-              "filler_words": false,
-              "profanity_filter": false,
-              "redact": [],
-              "diarize": true,
-              "smart_format": true,
-              "interim_results": false
-            }
-          }
-        },
-        realtime_endpoints: [
-          {
-            type: "desktop-sdk-callback",
-            events: [
-              "participant_events.join",
-              "video_separate_png.data",
-              "transcript.data",
-              "transcript.provider_data"
-            ]
-          },
-        ],
-      }
-    }, {
-      headers: { 'Authorization': `Token ${RECALLAI_API_KEY}` },
-      timeout: 9000,
-    });
-
-    console.log("Upload token created successfully:", response.data.upload_token);
-    return response.data;
   } catch (error) {
     console.error("Error creating upload token:", error.message);
     if (error.response) {
@@ -539,7 +498,7 @@ function initSDK() {
     }
   });
 
-  RecallAiSdk.addEventListener('permissions-granted', async(evt) => {
+  RecallAiSdk.addEventListener('permissions-granted', async (evt) => {
     console.log("PERMISSIONS GRANTED");
   });
 
@@ -1517,10 +1476,12 @@ async function generateMeetingSummary(meeting, progressCallback = null) {
     // Prepare the messages array for the API
     const messages = [
       { role: "system", content: systemMessage },
-      { role: "user", content: `Summarize the following meeting transcript with the EXACT format specified in your instructions:
+      {
+        role: "user", content: `Summarize the following meeting transcript with the EXACT format specified in your instructions:
 ${participantsText ? participantsText + "\n\n" : ""}
 Transcript:
-${transcriptText}` }
+${transcriptText}`
+      }
     ];
 
     // If no progress callback provided, use the non-streaming version
