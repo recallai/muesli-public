@@ -2,10 +2,7 @@
 
 This is a demo application that shows off what you can build with the [Recall.ai Desktop Recording SDK.](https://www.recall.ai/product/desktop-recording-sdk)
 
-This repo is intended to be a mockup of the kind of experience you can build using the Desktop Recording SDK. If you just want a minimal, easily-runnable example to use as a template for your project, or just want to see the bare minimum Desktop Recording SDK integration, check out one of the other sample applications:
-
-- https://github.com/recallai/desktop-sdk-electron-vite-sample
-- https://github.com/recallai/desktop-sdk-electron-webpack-sample
+This repo is intended to be a mockup of the kind of experience you can build using the Desktop Recording SDK.
 
 Need help? Reach out to our support team [support@recall.ai](mailto:support@recall.ai).
 
