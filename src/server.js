@@ -60,11 +60,9 @@ app.get('/start-recording', async (req, res) => {
     }
 });
 
-const port = process.env.PORT || 3000;
-
 if (require.main === module) {
-    app.listen(port, () => {
-        console.log(`Server listening on http://localhost:${port}`);
+    app.listen(13373, () => {
+        console.log(`Server listening on http://localhost:13373`);
     });
 }
 

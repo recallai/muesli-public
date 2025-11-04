@@ -331,7 +331,7 @@ const fileOperationManager = {
 // Create a desktop SDK upload token
 async function createDesktopSdkUpload() {
   try {
-    const response = await axios.get("http://localhost:3000/start-recording", { timeout: 10000 });
+    const response = await axios.get("http://localhost:13373/start-recording", { timeout: 10000 });
 
     if (response.data.status !== 'success') {
       console.error("Failed to create upload token:", response.data.message);
