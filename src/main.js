@@ -357,7 +357,7 @@ function initSDK() {
   // Log the SDK initialization
   sdkLogger.logApiCall('init', {
     dev: process.env.NODE_ENV === 'development',
-    api_url: process.env.RECALLAI_API_URL,
+    apiUrl: process.env.RECALLAI_API_URL,
     config: {
       recording_path: RECORDING_PATH
     }
@@ -365,7 +365,7 @@ function initSDK() {
 
   RecallAiSdk.init({
     // dev: true,
-    api_url: process.env.RECALLAI_API_URL,
+    apiUrl: process.env.RECALLAI_API_URL,
     config: {
       recording_path: RECORDING_PATH
     }

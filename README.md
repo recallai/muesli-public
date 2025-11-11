@@ -29,7 +29,7 @@ To launch the Muesli application, start the server first, then the app:
 
 ```sh
 npm install
-npm start-server
+npm run start-server
 npm start
 ```
 
