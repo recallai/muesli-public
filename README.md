@@ -28,7 +28,7 @@ OPENROUTER_KEY=<your key>
 To launch the Muesli application, start the server first, then the app:
 
 ```sh
-npm install
+npm ci
 npm start
 ```
 
