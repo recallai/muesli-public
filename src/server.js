@@ -9,7 +9,7 @@ const RECALLAI_API_URL = process.env.RECALLAI_API_URL || 'https://api.recall.ai'
 const RECALLAI_API_KEY = process.env.RECALLAI_API_KEY;
 
 app.get('/start-recording', async (req, res) => {
-    console.log(`Creating upload token with API key: ${RECALLAI_API_KEY}`);
+    console.log(`Creating upload token with API key: ${RECALLAI_API_KEY.slice(0,4)}...`);
 
     if (!RECALLAI_API_KEY) {
         console.error("RECALLAI_API_KEY is missing! Set it in .env file");
@@ -23,23 +23,12 @@ app.get('/start-recording', async (req, res) => {
             recording_config: {
                 transcript: {
                     provider: {
-                        deepgram_streaming: {
-                            "model": "nova-3",
-                            "version": "latest",
-                            "language": "en-US",
-                            "punctuate": true,
-                            "filler_words": false,
-                            "profanity_filter": false,
-                            "redact": [],
-                            "diarize": true,
-                            "smart_format": true,
-                            "interim_results": false
-                        }
+                        assembly_ai_v3_streaming: {}
                     }
                 },
                 realtime_endpoints: [
                     {
-                        type: "desktop-sdk-callback",
+                        type: "desktop_sdk_callback",
                         events: [
                             "participant_events.join",
                             "video_separate_png.data",
@@ -56,6 +45,7 @@ app.get('/start-recording', async (req, res) => {
 
         res.json({ status: 'success', upload_token: response.data.upload_token });
     } catch (e) {
+        console.error("Error creating upload token:", e.errors || e.response?.data || e.message);
         res.json({ status: 'error', message: e.message });
     }
 });

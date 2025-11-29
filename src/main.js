@@ -337,11 +337,11 @@ async function createDesktopSdkUpload() {
       console.error("Failed to create upload token:", response.data.message);
       return null;
     } else {
-      console.log("Upload token created successfully:", response.data.token);
+      console.log("Upload token created successfully:", response.data.upload_token);
       return response.data;
     }
   } catch (error) {
-    console.error("Error creating upload token:", error.message);
+    console.error("Error creating upload token:", error.errors || error.message || error);
     if (error.response) {
       console.error("Response data:", error.response.data);
       console.error("Response status:", error.response.status);
