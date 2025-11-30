@@ -414,6 +414,78 @@ function initSDK() {
     }
   });
 
+  // Listen for meeting updated events (to capture title and URL)
+  // NOTE: meeting-detected events do NOT guarantee title and URL will be populated.
+  // The meeting title and URL are only reliably available in meeting-updated events,
+  // which fire as the meeting metadata becomes available after initial detection.
+  RecallAiSdk.addEventListener('meeting-updated', async (evt) => {
+    console.log("Meeting updated:", evt);
+
+    const { window } = evt;
+
+    // Log the meeting updated event with the URL for tracking purposes
+    sdkLogger.logEvent('meeting-updated', {
+      platform: window.platform,
+      windowId: window.id,
+      title: window.title,
+      url: window.url
+    });
+
+    // Update the detectedMeeting object with the new information
+    if (detectedMeeting && detectedMeeting.window.id === window.id) {
+      detectedMeeting = {
+        ...detectedMeeting,
+        window: {
+          ...detectedMeeting.window,
+          title: window.title,
+          url: window.url
+        }
+      };
+
+      console.log("Updated meeting title:", window.title);
+
+      // If a note has already been created for this meeting, update its title retroactively
+      if (window.title && global.activeMeetingIds && global.activeMeetingIds[window.id]) {
+        const noteId = global.activeMeetingIds[window.id].noteId;
+        
+        if (noteId) {
+          console.log("Updating existing note title for:", noteId);
+          
+          try {
+            // Read the current meetings data
+            const meetingsData = await fileOperationManager.readMeetingsData();
+            
+            // Find the meeting in pastMeetings
+            const meeting = meetingsData.pastMeetings.find(m => m.id === noteId);
+            
+            if (meeting) {
+              const oldTitle = meeting.title;
+              
+              // Update the title
+              meeting.title = window.title;
+              
+              // Save the updated data
+              await fileOperationManager.writeData(meetingsData);
+              console.log(`Successfully updated meeting title from "${oldTitle}" to "${window.title}"`);
+              
+              // Notify the renderer to update the UI
+              if (mainWindow && !mainWindow.isDestroyed()) {
+                mainWindow.webContents.send('meeting-title-updated', {
+                  meetingId: noteId,
+                  newTitle: window.title
+                });
+              }
+            } else {
+              console.error("Meeting not found in pastMeetings with ID:", noteId);
+            }
+          } catch (error) {
+            console.error("Error updating meeting title:", error);
+          }
+        }
+      }
+    }
+  });
+
   // Listen for meeting closed events
   RecallAiSdk.addEventListener('meeting-closed', (evt) => {
     console.log("Meeting closed:", evt);
@@ -1056,14 +1128,21 @@ async function createMeetingNoteAndRecord(platformName) {
     // Current date and time
     const now = new Date();
 
+    // Use the actual meeting title if available, otherwise fall back to platform name + time
+    // NOTE: meeting-updated may fire after the user clicks to join, so this might not be
+    // populated yet. The meeting-updated handler will update the title retroactively if needed.
+    const meetingTitle = detectedMeeting.window.title 
+      ? detectedMeeting.window.title 
+      : `${platformName} Meeting - ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+
     // Create a template for the note content
-    const template = `# ${platformName} Meeting Notes\nRecording: In Progress...`;
+    const template = `# ${meetingTitle}\nRecording: In Progress...`;
 
     // Create a new meeting object
     const newMeeting = {
       id: id,
       type: 'document',
-      title: `${platformName} Meeting - ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
+      title: meetingTitle,
       subtitle: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       hasDemo: false,
       date: now.toISOString(),
