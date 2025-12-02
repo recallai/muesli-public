@@ -1429,6 +1429,28 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
+  // Listen for meeting title updates
+  window.electronAPI.onMeetingTitleUpdated((data) => {
+    console.log('Meeting title updated:', data);
+    
+    const { meetingId, newTitle } = data;
+    
+    // Reload the meetings data
+    loadMeetingsDataFromFile().then(() => {
+      // Re-render the meetings list to show the updated title
+      renderMeetings();
+      
+      // If this is the currently open meeting, update the editor title too
+      if (currentEditingMeetingId === meetingId) {
+        const noteTitleElement = document.getElementById('noteTitle');
+        if (noteTitleElement) {
+          noteTitleElement.textContent = newTitle;
+          console.log('Updated editor title to:', newTitle);
+        }
+      }
+    });
+  });
+
   // Listen for summary generation events
   window.electronAPI.onSummaryGenerated((meetingId) => {
     console.log('Summary generated for meeting:', meetingId);
