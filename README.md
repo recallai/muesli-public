@@ -17,7 +17,7 @@ Need help? Reach out to our support team [support@recall.ai](mailto:support@reca
 - Modify `.env` to include your Recall.ai API key:
     - `RECALLAI_API_KEY=<your key>`
 
-This project also tries to use live transcription with Deepgram by default. To enable this, you'll need to configure your own Deepgram credentials on the Recall.ai dashboard. Follow our [Deepgram real-time transcription guide](https://docs.recall.ai/docs/dsdk-realtime-transcription#/deepgram-transcription-setup) to set this up.
+Required: This project also uses live transcription with Assembly AI. You'll need to configure your own Assembly credentials on the Recall.ai dashboard. Follow our [AssemblyAI real-time transcription guide](https://docs.recall.ai/docs/dsdk-realtime-transcription#assemblyai-transcription-setup) to set this up.
 
 If you want to enable the AI summary after a recording is finished, you can specify an OpenRouter API key.
 

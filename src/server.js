@@ -45,7 +45,7 @@ app.get('/start-recording', async (req, res) => {
 
         res.json({ status: 'success', upload_token: response.data.upload_token });
     } catch (e) {
-        console.error("Error creating upload token:", e.errors || e.response?.data || e.message);
+        console.error("Error creating upload token:", JSON.stringify(e.errors || e.response?.data || e.message));
         res.json({ status: 'error', message: e.message });
     }
 });
