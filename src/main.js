@@ -341,7 +341,7 @@ async function createDesktopSdkUpload() {
       return response.data;
     }
   } catch (error) {
-    console.error("Error creating upload token:", error.errors || error.message || error);
+    console.error("Error creating upload token:", JSON.stringify(error.errors || error.message || error));
     if (error.response) {
       console.error("Response data:", error.response.data);
       console.error("Response status:", error.response.status);
