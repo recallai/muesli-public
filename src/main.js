@@ -111,15 +111,6 @@ app.whenReady().then(() => {
     }
   });
 
-  // Create recordings directory if it doesn't exist
-  try {
-    if (!fs.existsSync(RECORDING_PATH)) {
-      fs.mkdirSync(RECORDING_PATH, { recursive: true });
-    }
-  } catch (e) {
-    console.error("Couldn't create the recording path:", e);
-  }
-
   // Create meetings file if it doesn't exist
   try {
     if (!fs.existsSync(meetingsFilePath)) {
@@ -164,9 +155,6 @@ app.on('window-all-closed', () => {
 
 // Path to meetings data file in the user's Application Support directory
 const meetingsFilePath = path.join(app.getPath('userData'), 'meetings.json');
-
-// Path for RecallAI SDK recordings
-const RECORDING_PATH = path.join(app.getPath("userData"), 'recordings');
 
 // Global state to track active recordings
 const activeRecordings = {
@@ -357,18 +345,12 @@ function initSDK() {
   // Log the SDK initialization
   sdkLogger.logApiCall('init', {
     dev: process.env.NODE_ENV === 'development',
-    api_url: process.env.RECALLAI_API_URL,
-    config: {
-      recording_path: RECORDING_PATH
-    }
+    api_url: process.env.RECALLAI_API_URL
   });
 
   RecallAiSdk.init({
     // dev: true,
-    api_url: process.env.RECALLAI_API_URL,
-    config: {
-      recording_path: RECORDING_PATH
-    }
+    api_url: process.env.RECALLAI_API_URL
   });
 
   // Listen for meeting detected events
@@ -822,44 +804,8 @@ ipcMain.handle('generateMeetingSummary', async (event, meetingId) => {
     // Get meeting title for use in the new content
     const meetingTitle = meeting.title || "Meeting Notes";
 
-    // Get recording ID
-    const recordingId = meeting.recordingId;
-
-    // Check for different possible video file patterns
-    const possibleFilePaths = recordingId ? [
-      path.join(RECORDING_PATH, `${recordingId}.mp4`),
-      path.join(RECORDING_PATH, `macos-desktop-${recordingId}.mp4`),
-      path.join(RECORDING_PATH, `macos-desktop${recordingId}.mp4`),
-      path.join(RECORDING_PATH, `desktop-${recordingId}.mp4`)
-    ] : [];
-
-    // Find the first video file that exists
-    let videoExists = false;
-    let videoFilePath = null;
-
-    try {
-      for (const filePath of possibleFilePaths) {
-        if (fs.existsSync(filePath)) {
-          videoExists = true;
-          videoFilePath = filePath;
-          console.log(`Found video file at: ${videoFilePath}`);
-          break;
-        }
-      }
-    } catch (err) {
-      console.error('Error checking for video files:', err);
-    }
-
     // Create content with the AI-generated summary
     meeting.content = `# ${meetingTitle}\n\n${summary}`;
-
-    // If video exists, store the path separately but don't add it to the content
-    if (videoExists) {
-      meeting.videoPath = videoFilePath; // Store the path for future reference
-      console.log(`Stored video path in meeting object: ${videoFilePath}`);
-    } else {
-      console.log('Video file not found or no recording ID');
-    }
 
     meeting.hasSummary = true;
 
@@ -1746,43 +1692,8 @@ async function updateNoteWithRecordingInfo(recordingId) {
       // Generate the summary with streaming updates
       const summary = await generateMeetingSummary(meeting, streamProgress);
 
-      // Check for different possible video file patterns
-      const possibleFilePaths = [
-        path.join(RECORDING_PATH, `${recordingId}.mp4`),
-        path.join(RECORDING_PATH, `macos-desktop-${recordingId}.mp4`),
-        path.join(RECORDING_PATH, `macos-desktop${recordingId}.mp4`),
-        path.join(RECORDING_PATH, `desktop-${recordingId}.mp4`)
-      ];
-
-      // Find the first video file that exists
-      let videoExists = false;
-      let videoFilePath = null;
-
-      try {
-        for (const filePath of possibleFilePaths) {
-          if (fs.existsSync(filePath)) {
-            videoExists = true;
-            videoFilePath = filePath;
-            console.log(`Found video file at: ${videoFilePath}`);
-            break;
-          }
-        }
-      } catch (err) {
-        console.error('Error checking for video files:', err);
-      }
-
-      console.log("Attempting to embed video file", videoFilePath);
-
       // Set the content to just the summary
       meeting.content = `${summary}`;
-
-      // If video exists, store the path separately but don't add it to the content
-      if (videoExists) {
-        meeting.videoPath = videoFilePath; // Store the path for future reference
-        console.log(`Stored video path in meeting object: ${videoFilePath}`);
-      } else {
-        console.log('Video file not found, continuing without embedding');
-      }
 
       meeting.hasSummary = true;
 
