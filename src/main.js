@@ -519,7 +519,7 @@ function initSDK() {
               uploadToken: `${uploadData.upload_token.substring(0, 8)}...` // Log truncated token for security
             });
 
-            RecallAiSdk.uploadRecording({
+            await RecallAiSdk.uploadRecording({
               windowId: evt.window.id,
               uploadToken: uploadData.upload_token
             });
@@ -532,7 +532,7 @@ function initSDK() {
               windowId: evt.window.id
             });
 
-            RecallAiSdk.uploadRecording({ windowId: evt.window.id });
+            await RecallAiSdk.uploadRecording({ windowId: evt.window.id });
           }
         } catch (uploadError) {
           console.error('Error during upload:', uploadError);
@@ -544,7 +544,7 @@ function initSDK() {
             error: 'Fallback after error'
           });
 
-          RecallAiSdk.uploadRecording({ windowId: evt.window.id });
+          await RecallAiSdk.uploadRecording({ windowId: evt.window.id });
         }
       }, 3000); // Wait 3 seconds before uploading
     } catch (error) {
@@ -893,7 +893,7 @@ ipcMain.handle('startManualRecording', async (event, meetingId) => {
         uploadToken: `${uploadData.upload_token.substring(0, 8)}...` // Log truncated token for security
       });
 
-      RecallAiSdk.startRecording({
+      await RecallAiSdk.startRecording({
         windowId: key,
         uploadToken: uploadData.upload_token
       });
@@ -927,7 +927,7 @@ ipcMain.handle('stopManualRecording', async (event, recordingId) => {
     // Update our active recordings tracker
     activeRecordings.updateState(recordingId, 'stopping');
 
-    RecallAiSdk.stopRecording({
+    await RecallAiSdk.stopRecording({
       windowId: recordingId
     });
 
@@ -1168,7 +1168,7 @@ async function createMeetingNoteAndRecord(platformName) {
           windowId: detectedMeeting.window.id
         });
 
-        RecallAiSdk.startRecording({
+        await RecallAiSdk.startRecording({
           windowId: detectedMeeting.window.id
         });
       } else {
@@ -1180,7 +1180,7 @@ async function createMeetingNoteAndRecord(platformName) {
           uploadToken: `${uploadData.upload_token.substring(0, 8)}...` // Log truncated token for security
         });
 
-        RecallAiSdk.startRecording({
+        await RecallAiSdk.startRecording({
           windowId: detectedMeeting.window.id,
           uploadToken: uploadData.upload_token
         });
@@ -1196,7 +1196,7 @@ async function createMeetingNoteAndRecord(platformName) {
         error: 'Fallback after error'
       });
 
-      RecallAiSdk.startRecording({
+      await RecallAiSdk.startRecording({
         windowId: detectedMeeting.window.id
       });
     }
