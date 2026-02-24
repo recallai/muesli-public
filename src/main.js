@@ -129,7 +129,7 @@ app.whenReady().then(() => {
   // When the window is ready, send the initial meeting detection status
   mainWindow.webContents.on('did-finish-load', () => {
     // Send the initial meeting detection status
-    mainWindow.webContents.send('meeting-detection-status', { detected: detectedMeeting !== null });
+    mainWindow.webContents.send('meeting-detection-status', { detected: detectedMeeting !== null, platformName: detectedMeeting?.window?.platform || null });
   });
 
   // On OS X it's common to re-create a window in the app when the
@@ -392,7 +392,7 @@ function initSDK() {
 
     // Send the meeting detected status to the renderer process
     if (mainWindow && !mainWindow.isDestroyed()) {
-      mainWindow.webContents.send('meeting-detection-status', { detected: true });
+      mainWindow.webContents.send('meeting-detection-status', { detected: true, platformName });
     }
   });
 
@@ -487,7 +487,7 @@ function initSDK() {
 
     // Send the meeting closed status to the renderer process
     if (mainWindow && !mainWindow.isDestroyed()) {
-      mainWindow.webContents.send('meeting-detection-status', { detected: false });
+      mainWindow.webContents.send('meeting-detection-status', { detected: false, platformName: null });
     }
   });
 

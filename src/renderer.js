@@ -281,7 +281,7 @@ function showHomeView() {
   if (joinMeetingBtn) {
     // Always show the button
     joinMeetingBtn.style.display = 'block';
-    joinMeetingBtn.innerHTML = 'Record Meeting';
+    joinMeetingBtn.innerHTML = `Record ${window.meetingPlatform || "Meeting"}`;
 
     // Enable/disable based on meeting detection
     if (window.meetingDetected) {
@@ -1249,6 +1249,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Store the meeting detection state globally
     window.meetingDetected = data.detected;
+    window.meetingPlatform = data.platformName;
 
     if (joinMeetingBtn) {
       // Only update button state if we're in the home view
@@ -1258,6 +1259,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Always show the button, but enable/disable based on meeting detection
         joinMeetingBtn.style.display = 'block';
         joinMeetingBtn.disabled = !data.detected;
+        joinMeetingBtn.textContent = data.detected ? `Record ${data.platformName}` : 'Record meeting';
       }
     }
   });
