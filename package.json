@@ -37,6 +37,15 @@
     "node-loader": "^2.1.0",
     "style-loader": "^3.3.4"
   },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@recallai/desktop-sdk",
+      "electron",
+      "electron-winstaller",
+      "fs-xattr",
+      "macos-alias"
+    ]
+  },
   "overrides": {
     "@electron/packager": {
       "@electron/osx-sign": "github:recallai/osx-sign"
