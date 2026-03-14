@@ -8,29 +8,13 @@ const OpenAI = require('openai');
 const sdkLogger = require('./sdk-logger');
 require('dotenv').config();
 
-// Function to get the OpenRouter headers
-function getHeaderLines() {
-  return [
-    "HTTP-Referer: https://recall.ai", // Replace with your actual app's URL
-    "X-Title: Muesli AI Notetaker"
-  ];
-}
-
-// Initialize OpenAI client with OpenRouter as the base URL
+// Initialize OpenAI client
 const openai = new OpenAI({
-  baseURL: "https://openrouter.ai/api/v1",
-  apiKey: process.env.OPENROUTER_KEY,
-  defaultHeaders: {
-    "HTTP-Referer": "https://recall.ai",
-    "X-Title": "Muesli AI Notetaker"
-  }
+  apiKey: process.env.OPENAI_API_KEY,
 });
 
-// Define available models with their capabilities
 const MODELS = {
-  // Primary models
-  PRIMARY: "anthropic/claude-3.7-sonnet",
-  FALLBACKS: []
+  PRIMARY: "gpt-5-mini",
 };
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
@@ -1511,15 +1495,11 @@ ${transcriptText}`
 
     // If no progress callback provided, use the non-streaming version
     if (!progressCallback) {
-      // Call the OpenAI API (via OpenRouter) for summarization (non-streaming)
       const response = await openai.chat.completions.create({
-        model: MODELS.PRIMARY, // Use our primary model for a good balance of quality and speed
+        model: MODELS.PRIMARY,
         messages: messages,
         max_tokens: 1000,
         temperature: 0.7,
-        fallbacks: MODELS.FALLBACKS, // Use our defined fallback models
-        transform_to_openai: true, // Ensures consistent response format across models
-        route: "fallback" // Automatically use fallbacks if the primary model is unavailable
       });
 
       // Log which model was actually used
@@ -1531,16 +1511,12 @@ ${transcriptText}`
       // Use streaming version and accumulate the response
       let fullText = '';
 
-      // Create a streaming request
       const stream = await openai.chat.completions.create({
-        model: MODELS.PRIMARY, // Use our primary model for a good balance of quality and speed
+        model: MODELS.PRIMARY,
         messages: messages,
         max_tokens: 1000,
         temperature: 0.7,
         stream: true,
-        fallbacks: MODELS.FALLBACKS, // Use our defined fallback models
-        transform_to_openai: true, // Ensures consistent response format across models
-        route: "fallback" // Automatically use fallbacks if the primary model is unavailable
       });
 
       // Handle streaming events
@@ -1591,7 +1567,7 @@ ${transcriptText}`
   } catch (error) {
     console.error('Error generating meeting summary:', error);
 
-    // Check if it's an OpenRouter/OpenAI specific error
+    // Check if it's an OpenAI specific error
     if (error.status) {
       return `Error generating summary: API returned status ${error.status}: ${error.message}`;
     } else if (error.response) {
