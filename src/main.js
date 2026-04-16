@@ -429,27 +429,27 @@ function initSDK() {
       // If a note has already been created for this meeting, update its title retroactively
       if (window.title && global.activeMeetingIds && global.activeMeetingIds[window.id]) {
         const noteId = global.activeMeetingIds[window.id].noteId;
-        
+
         if (noteId) {
           console.log("Updating existing note title for:", noteId);
-          
+
           try {
             // Read the current meetings data
             const meetingsData = await fileOperationManager.readMeetingsData();
-            
+
             // Find the meeting in pastMeetings
             const meeting = meetingsData.pastMeetings.find(m => m.id === noteId);
-            
+
             if (meeting) {
               const oldTitle = meeting.title;
-              
+
               // Update the title
               meeting.title = window.title;
-              
+
               // Save the updated data
               await fileOperationManager.writeData(meetingsData);
               console.log(`Successfully updated meeting title from "${oldTitle}" to "${window.title}"`);
-              
+
               // Notify the renderer to update the UI
               if (mainWindow && !mainWindow.isDestroyed()) {
                 mainWindow.webContents.send('meeting-title-updated', {
@@ -574,49 +574,31 @@ function initSDK() {
     }
   });
 
-  // Track SDK state changes
-  RecallAiSdk.addEventListener('sdk-state-change', async (evt) => {
-    const { sdk: { state: { code } }, window } = evt;
-    console.log("Recording state changed:", code, "for window:", window?.id);
-
-    // Log the SDK sdk-state-change event
-    sdkLogger.logEvent('sdk-state-change', {
-      state: code,
-      windowId: window?.id
-    });
-
-    // Update recording state in our global tracker
-    if (window && window.id) {
-      // Get the meeting note ID associated with this window
-      let noteId = null;
-      if (global.activeMeetingIds && global.activeMeetingIds[window.id]) {
-        noteId = global.activeMeetingIds[window.id].noteId;
-      }
-
-      // Update the recording state in our tracker
-      if (code === 'recording') {
-        console.log('Recording in progress...');
-        if (noteId) {
-          // If recording started, add it to our active recordings
-          activeRecordings.addRecording(window.id, noteId, window.platform || 'unknown');
-        }
-      } else if (code === 'paused') {
-        console.log('Recording paused');
-        activeRecordings.updateState(window.id, 'paused');
-      } else if (code === 'idle') {
-        console.log('Recording stopped');
-        activeRecordings.removeRecording(window.id);
-      }
-
-      // Notify renderer process about recording state change
-      if (mainWindow && !mainWindow.isDestroyed()) {
-        mainWindow.webContents.send('recording-state-change', {
-          recordingId: window.id,
-          state: code,
-          noteId
-        });
-      }
+  RecallAiSdk.addEventListener('recording-started', async evt => {
+    const { window } = evt;
+    if (!window || !window.id) {
+      return;
     }
+
+    let noteId = null;
+    if (global.activeMeetingIds && global.activeMeetingIds[window.id]) {
+      noteId = global.activeMeetingIds[window.id].noteId;
+    }
+
+    console.log("Recording started for window:", window.id);
+    if (noteId) {
+      activeRecordings.addRecording(window.id, noteId, window.platform || 'unknown');
+    }
+  });
+
+  RecallAiSdk.addEventListener('recording-ended', async evt => {
+    const { window } = evt;
+    if (!window || !window.id) {
+      return;
+    }
+
+    console.log("Recording stopped for window:", window.id);
+    activeRecordings.removeRecording(window.id);
   });
 
   // Listen for real-time transcript events
@@ -1077,8 +1059,8 @@ async function createMeetingNoteAndRecord(platformName) {
     // Use the actual meeting title if available, otherwise fall back to platform name + time
     // NOTE: meeting-updated may fire after the user clicks to join, so this might not be
     // populated yet. The meeting-updated handler will update the title retroactively if needed.
-    const meetingTitle = detectedMeeting.window.title 
-      ? detectedMeeting.window.title 
+    const meetingTitle = detectedMeeting.window.title
+      ? detectedMeeting.window.title
       : `${platformName} Meeting - ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
 
     // Create a template for the note content
