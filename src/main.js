@@ -325,7 +325,7 @@ async function createDesktopSdkUpload() {
       console.error("Failed to create upload token:", response.data.message);
       return null;
     } else {
-      console.log("Upload token created successfully:", response.data.upload_token);
+      console.log("Upload token created successfully");
       return response.data;
     }
   } catch (error) {
@@ -511,12 +511,11 @@ function initSDK() {
           const uploadData = await createDesktopSdkUpload();
 
           if (uploadData && uploadData.upload_token) {
-            console.log('Uploading recording with new upload token:', uploadData.upload_token);
+            console.log('Uploading recording with a new upload token');
 
             // Log the uploadRecording API call
             sdkLogger.logApiCall('uploadRecording', {
-              windowId: evt.window.id,
-              uploadToken: `${uploadData.upload_token.substring(0, 8)}...` // Log truncated token for security
+              windowId: evt.window.id
             });
 
             await RecallAiSdk.uploadRecording({
@@ -871,8 +870,7 @@ ipcMain.handle('startManualRecording', async (event, meetingId) => {
 
       // Log the startRecording API call
       sdkLogger.logApiCall('startRecording', {
-        windowId: key,
-        uploadToken: `${uploadData.upload_token.substring(0, 8)}...` // Log truncated token for security
+        windowId: key
       });
 
       await RecallAiSdk.startRecording({
@@ -1154,12 +1152,11 @@ async function createMeetingNoteAndRecord(platformName) {
           windowId: detectedMeeting.window.id
         });
       } else {
-        console.log('Starting recording with upload token:', uploadData.upload_token);
+        console.log('Starting recording with an upload token');
 
-        // Log the startRecording API call with upload token
+        // Log the startRecording API call
         sdkLogger.logApiCall('startRecording', {
-          windowId: detectedMeeting.window.id,
-          uploadToken: `${uploadData.upload_token.substring(0, 8)}...` // Log truncated token for security
+          windowId: detectedMeeting.window.id
         });
 
         await RecallAiSdk.startRecording({
