@@ -8,6 +8,8 @@
 
 import './index.css';
 
+const { escapeHtml } = require('./html');
+
 // Create empty meetings data structure to be filled from the file
 const meetingsData = {
   upcomingMeetings: [],
@@ -247,17 +249,17 @@ function createMeetingCard(meeting) {
   }
 
   let subtitleHtml = meeting.hasDemo
-    ? `<div class="meeting-time"><a class="meeting-demo-link">${meeting.subtitle}</a></div>`
-    : `<div class="meeting-time">${meeting.subtitle}</div>`;
+    ? `<div class="meeting-time"><a class="meeting-demo-link">${escapeHtml(meeting.subtitle)}</a></div>`
+    : `<div class="meeting-time">${escapeHtml(meeting.subtitle)}</div>`;
 
   card.innerHTML = `
     ${iconHtml}
     <div class="meeting-content">
-      <div class="meeting-title">${meeting.title}</div>
+      <div class="meeting-title">${escapeHtml(meeting.title)}</div>
       ${subtitleHtml}
     </div>
     <div class="meeting-actions">
-      <button class="delete-meeting-btn" data-id="${meeting.id}" title="Delete note">
+      <button class="delete-meeting-btn" data-id="${escapeHtml(meeting.id)}" title="Delete note">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" fill="currentColor"/>
         </svg>
@@ -281,7 +283,7 @@ function showHomeView() {
   if (joinMeetingBtn) {
     // Always show the button
     joinMeetingBtn.style.display = 'block';
-    joinMeetingBtn.innerHTML = `Record ${window.meetingPlatform || "Meeting"}`;
+    joinMeetingBtn.textContent = `Record ${window.meetingPlatform || "Meeting"}`;
 
     // Enable/disable based on meeting detection
     if (window.meetingDetected) {
@@ -727,9 +729,9 @@ function updateDebugTranscript(transcript) {
 
     // Create HTML for this entry
     entryDiv.innerHTML = `
-      <div class="transcript-speaker">${entry.speaker || 'Unknown'}</div>
-      <div class="transcript-text">${entry.text}</div>
-      <div class="transcript-timestamp">${formattedTime}</div>
+      <div class="transcript-speaker">${escapeHtml(entry.speaker || 'Unknown')}</div>
+      <div class="transcript-text">${escapeHtml(entry.text)}</div>
+      <div class="transcript-timestamp">${escapeHtml(formattedTime)}</div>
     `;
 
     // Add a highlight class for the newest entry
@@ -906,8 +908,8 @@ function updateDebugParticipants(participants) {
           <path d="M12 31C12 26.0294 15.5817 22 20 22C24.4183 22 28 26.0294 28 31" stroke="#a0a0a0" stroke-width="4"/>
         </svg>
       </div>
-      <div class="participant-name">${participant.name || 'Unknown'}</div>
-      <div class="participant-status">${participant.status || 'Active'}</div>
+      <div class="participant-name">${escapeHtml(participant.name || 'Unknown')}</div>
+      <div class="participant-status">${escapeHtml(participant.status || 'Active')}</div>
     `;
 
     participantsList.appendChild(participantDiv);
@@ -1148,28 +1150,28 @@ const sdkLogger = {
 
       switch (entry.type) {
         case 'api-call':
-          content = `<span class="method">RecallAiSdk.${entry.method}()</span>`;
+          content = `<span class="method">RecallAiSdk.${escapeHtml(entry.method)}()</span>`;
           if (entry.params && Object.keys(entry.params).length > 0) {
             content += `<div class="params">${this.formatParams(entry.params)}</div>`;
           }
           break;
 
         case 'event':
-          content = `<span class="event-type">Event: ${entry.eventType}</span>`;
+          content = `<span class="event-type">Event: ${escapeHtml(entry.eventType)}</span>`;
           if (entry.data && Object.keys(entry.data).length > 0) {
             content += `<div class="params">${this.formatParams(entry.data)}</div>`;
           }
           break;
 
         case 'error':
-          content = `<span class="error-type">Error: ${entry.errorType}</span>`;
+          content = `<span class="error-type">Error: ${escapeHtml(entry.errorType)}</span>`;
           if (entry.message) {
-            content += `<div class="params">${entry.message}</div>`;
+            content += `<div class="params">${escapeHtml(entry.message)}</div>`;
           }
           break;
 
         default:
-          content = entry.message;
+          content = escapeHtml(entry.message);
       }
 
       logElement.innerHTML += content;
@@ -1208,16 +1210,11 @@ const sdkLogger = {
   // Format parameters object to JSON string
   formatParams(params) {
     try {
-      return JSON.stringify(params, null, 2)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;')
+      return escapeHtml(JSON.stringify(params, null, 2))
         .replace(/\n/g, '<br>')
         .replace(/ /g, '&nbsp;');
     } catch (e) {
-      return String(params);
+      return escapeHtml(params);
     }
   }
 };
@@ -1359,7 +1356,7 @@ document.addEventListener('DOMContentLoaded', async () => {
               miniNotification.className = 'debug-notification participant-notification';
               miniNotification.innerHTML = `
                 <span class="debug-notification-title">New Participant:</span>
-                <span class="debug-notification-name">${latestParticipant.name || 'Unknown'}</span>
+                <span class="debug-notification-name">${escapeHtml(latestParticipant.name || 'Unknown')}</span>
               `;
 
               // Add to document
@@ -1409,8 +1406,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const miniNotification = document.createElement('div');
                 miniNotification.className = 'debug-notification transcript-notification';
                 miniNotification.innerHTML = `
-                  <span class="debug-notification-speaker">${latestEntry.speaker || 'Unknown'}</span>:
-                  <span class="debug-notification-text">${latestEntry.text.slice(0, 40)}${latestEntry.text.length > 40 ? '...' : ''}</span>
+                  <span class="debug-notification-speaker">${escapeHtml(latestEntry.speaker || 'Unknown')}</span>:
+                  <span class="debug-notification-text">${escapeHtml(latestEntry.text.slice(0, 40))}${latestEntry.text.length > 40 ? '...' : ''}</span>
                 `;
 
                 // Add to document

@@ -11,6 +11,7 @@
     "make": "electron-forge make",
     "publish": "electron-forge publish",
     "lint": "echo \"No linting configured\"",
+    "test": "node --test src/*.test.js",
     "start:server": "node ./src/server.js"
   },
   "keywords": [],
